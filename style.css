@@ -1,0 +1,35 @@
+body {
+  font-family: Arial;
+  padding: 20px;
+  background: #f5f5f5;
+}
+
+input, select, button {
+  margin: 5px;
+  padding: 6px;
+}
+
+table {
+  border-collapse: collapse;
+  background: white;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid black;
+  padding: 6px 10px;
+  text-align: center;
+}
+
+.controls {
+  margin: 10px 0;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.muted {
+  color: #444;
+  font-size: 13px;
+}

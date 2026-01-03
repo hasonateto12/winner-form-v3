@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>מומחה – טבלת משחקים</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<h2>מומחה – הזנת משחקים</h2>
+
+<div class="controls">
+  <button id="btnNew">צור טופס חדש</button>
+  <button id="btnCopyExpert" disabled>העתק קישור מומחה</button>
+  <button id="btnCopyPlayers" disabled>העתק קישור שחקנים</button>
+</div>
+
+<div class="muted" id="linkInfo"></div>
+
+<hr/>
+
+<form id="matchForm">
+  <input id="day" placeholder="יום" required />
+  <input id="league" placeholder="ליגה" required />
+  <input id="home" placeholder="קבוצת בית" required />
+  <input id="away" placeholder="קבוצת חוץ" required />
+  <button type="submit">הוסף משחק</button>
+</form>
+
+<div class="controls">
+  <input id="deleteIndex" type="number" placeholder="מספר שורה למחיקה" />
+  <button id="btnDelete">מחק משחק</button>
+  <button id="btnClear">נקה את כל הטבלה</button>
+  <button id="btnMode" disabled>מצב חישוב נקודות (כבוי)</button>
+</div>
+
+<h2>טבלת משחקים + ניחושים</h2>
+<table id="mainTable"></table>
+
+<h3>טבלת ניקוד</h3>
+<table id="scoreTable"></table>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
