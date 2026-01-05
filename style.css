@@ -34,16 +34,17 @@ th, td {
   font-size: 13px;
 }
 
-/* totals bar under main table (separate table, same width) */
+
+
+
 #totalsWrap {
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 #totalsTable {
   width: 100%;
   border-collapse: collapse;
   background: white;
-  table-layout: fixed; /* helps match main table proportions */
 }
 
 #totalsTable td {
@@ -54,7 +55,7 @@ th, td {
 }
 
 #totalsTable td.totals-label {
-  text-align: right;        /* RTL label */
+  text-align: right;     /* RTL */
   padding-right: 14px;
   white-space: nowrap;
 }
@@ -72,5 +73,3 @@ th, td {
   font-size: 12px;
   background: rgba(255,255,255,0.65);
 }
-
-

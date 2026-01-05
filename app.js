@@ -449,11 +449,11 @@ async function toggleGreen(matchId, player) {
 // ✅ שורת סה״כ מחוץ לטבלה + WINNER (מי שהכי גבוה)
 function renderTotalsOutside() {
   const totalsTable = document.getElementById("totalsTable");
-  if (!totalsTable) return;
+  const mainTable = document.getElementById("mainTable");
+  if (!totalsTable || !mainTable) return;
 
+  // ===== סופרים נקודות לכל שחקן =====
   const results = formData.results || {};
-
-  // סופרים נקודות לכל שחקן
   const totals = {};
   PLAYERS_ORDER.forEach(p => totals[p] = 0);
 
@@ -466,20 +466,39 @@ function renderTotalsOutside() {
   const values = PLAYERS_ORDER.map(p => totals[p] || 0);
   const max = values.length ? Math.max(...values) : 0;
 
-  // ✅ בונים שורה עם אותו מספר עמודות כמו הטבלה הראשית:
-  // (#, יום, ליגה, בית, חוץ) = 5 עמודות "ימניות"
-  // + עמודות שחקנים = PLAYERS_ORDER.length
+  // ===== נבנה totalsTable עם COLGROUP זהה לטבלה הראשית =====
   totalsTable.innerHTML = "";
+
+  const mainHeader = mainTable.querySelector("tr");
+  if (!mainHeader) return;
+
+  const ths = Array.from(mainHeader.children); // th של הטבלה הראשית (#, יום, ליגה, בית, חוץ, שחקנים...)
+  const colgroup = document.createElement("colgroup");
+
+  // מעתיקים רוחב בפיקסלים של כל עמודה מהכותרת הראשית
+  ths.forEach(th => {
+    const col = document.createElement("col");
+    const w = th.getBoundingClientRect().width;
+    col.style.width = `${w}px`;
+    colgroup.appendChild(col);
+  });
+
+  totalsTable.appendChild(colgroup);
+
+  // ===== שורת הסה"כ =====
+  // חשוב: סדר העמודות אצלנו בטבלה הראשית הוא:
+  // 0:# 1:יום 2:ליגה 3:בית 4:חוץ 5..:שחקנים
+  // הבקשה שלך: הכותרת "סה״כ ניחושים" תתחיל מעמודת "חוץ"
+  // => כלומר תא אחד שתופס את 5 העמודות הראשונות (#..חוץ)
   const tr = document.createElement("tr");
 
-  // תא כותרת בצד ימין (כמו אזור ליגה/יום/...) – תופס 5 עמודות
   const labelTd = document.createElement("td");
   labelTd.className = "totals-label";
-  labelTd.colSpan = 5;
-  labelTd.textContent = "סה״כ ניחושים";
+  labelTd.colSpan = 5; // # + יום + ליגה + בית + חוץ
+  labelTd.textContent = 'סה״כ ניחושים';
   tr.appendChild(labelTd);
 
-  // עכשיו תאים של שחקנים (בדיוק מתחת לעמודות השמות)
+  // תאים מתחת לכל שחקן בדיוק (אותו רוחב כי colgroup)
   PLAYERS_ORDER.forEach(p => {
     const td = document.createElement("td");
     const val = totals[p] || 0;
@@ -490,16 +509,12 @@ function renderTotalsOutside() {
     } else {
       td.textContent = String(val);
     }
-
     tr.appendChild(td);
   });
 
   totalsTable.appendChild(tr);
-
-  // ✅ חשוב: כדי שהרוחב יתאים ממש לטבלה הראשית,
-  // נעתיק "רוחבי עמודות" מה-header של הטבלה הראשית אם קיימים.
-  syncTotalsColumnWidths();
 }
+
 
 function syncTotalsColumnWidths() {
   const main = document.getElementById("mainTable");
