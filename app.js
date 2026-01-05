@@ -452,7 +452,7 @@ function renderTotalsOutside() {
   const mainTable = document.getElementById("mainTable");
   if (!totalsTable || !mainTable) return;
 
-  // ===== סופרים נקודות לכל שחקן =====
+  // ===== חישוב ניקוד =====
   const results = formData.results || {};
   const totals = {};
   PLAYERS_ORDER.forEach(p => totals[p] = 0);
@@ -466,39 +466,46 @@ function renderTotalsOutside() {
   const values = PLAYERS_ORDER.map(p => totals[p] || 0);
   const max = values.length ? Math.max(...values) : 0;
 
-  // ===== נבנה totalsTable עם COLGROUP זהה לטבלה הראשית =====
+  // ===== ניקוי =====
   totalsTable.innerHTML = "";
 
-  const mainHeader = mainTable.querySelector("tr");
-  if (!mainHeader) return;
+  // ===== colgroup זהה לטבלה הראשית =====
+  const headerRow = mainTable.querySelector("tr");
+  const ths = Array.from(headerRow.children);
 
-  const ths = Array.from(mainHeader.children); // th של הטבלה הראשית (#, יום, ליגה, בית, חוץ, שחקנים...)
   const colgroup = document.createElement("colgroup");
-
-  // מעתיקים רוחב בפיקסלים של כל עמודה מהכותרת הראשית
   ths.forEach(th => {
     const col = document.createElement("col");
-    const w = th.getBoundingClientRect().width;
-    col.style.width = `${w}px`;
+    col.style.width = `${th.getBoundingClientRect().width}px`;
     colgroup.appendChild(col);
   });
-
   totalsTable.appendChild(colgroup);
 
-  // ===== שורת הסה"כ =====
-  // חשוב: סדר העמודות אצלנו בטבלה הראשית הוא:
-  // 0:# 1:יום 2:ליגה 3:בית 4:חוץ 5..:שחקנים
-  // הבקשה שלך: הכותרת "סה״כ ניחושים" תתחיל מעמודת "חוץ"
-  // => כלומר תא אחד שתופס את 5 העמודות הראשונות (#..חוץ)
-  const tr = document.createElement("tr");
+  // ===== שורה 1: שמות שחקנים =====
+  const namesRow = document.createElement("tr");
+
+  const emptyTd = document.createElement("td");
+  emptyTd.colSpan = 5; // # + יום + ליגה + בית + חוץ
+  namesRow.appendChild(emptyTd);
+
+  PLAYERS_ORDER.forEach(name => {
+    const td = document.createElement("td");
+    td.textContent = name;
+    td.style.fontWeight = "bold";
+    namesRow.appendChild(td);
+  });
+
+  totalsTable.appendChild(namesRow);
+
+  // ===== שורה 2: סה״כ ניחושים =====
+  const totalsRow = document.createElement("tr");
 
   const labelTd = document.createElement("td");
-  labelTd.className = "totals-label";
-  labelTd.colSpan = 5; // # + יום + ליגה + בית + חוץ
+  labelTd.colSpan = 5;
   labelTd.textContent = 'סה״כ ניחושים';
-  tr.appendChild(labelTd);
+  labelTd.className = "totals-label";
+  totalsRow.appendChild(labelTd);
 
-  // תאים מתחת לכל שחקן בדיוק (אותו רוחב כי colgroup)
   PLAYERS_ORDER.forEach(p => {
     const td = document.createElement("td");
     const val = totals[p] || 0;
@@ -507,13 +514,14 @@ function renderTotalsOutside() {
       td.classList.add("winner");
       td.innerHTML = `${val} <span class="tag">WINNER</span>`;
     } else {
-      td.textContent = String(val);
+      td.textContent = val;
     }
-    tr.appendChild(td);
+    totalsRow.appendChild(td);
   });
 
-  totalsTable.appendChild(tr);
+  totalsTable.appendChild(totalsRow);
 }
+
 
 
 function syncTotalsColumnWidths() {
