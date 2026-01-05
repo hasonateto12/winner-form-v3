@@ -1,4 +1,3 @@
-// app.js
 import { db } from "./firebase.js";
 import {
   doc,
@@ -8,80 +7,80 @@ import {
   onSnapshot,
   collection,
   getDocs,
-  deleteDoc,
   writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 // ===== קבועים =====
-const PLAYERS_ORDER = ["חגי", "ראזי", "סעיד", "ווסים", "צביר", "שמעון"];
+const PLAYERS_ORDER = ["חגי","ראזי","סעיד","ווסים","צביר","שמעון"];
+const GUESS_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 שעות
 
 // ===== עזרי URL =====
-function qs() {
-  return new URLSearchParams(location.search);
-}
-function getBaseUrl() {
-  return location.origin + location.pathname.replace(/\/[^\/]*$/, "");
-}
+function qs() { return new URLSearchParams(location.search); }
+function getBaseUrl() { return location.origin + location.pathname.replace(/\/[^\/]*$/, ""); }
 function makeId(len = 8) {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
   let s = "";
-  for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  for (let i=0;i<len;i++) s += chars[Math.floor(Math.random()*chars.length)];
   return s;
 }
 function makeKey(len = 20) {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let s = "";
-  for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  for (let i=0;i<len;i++) s += chars[Math.floor(Math.random()*chars.length)];
   return s;
 }
 async function sha256(text) {
   const enc = new TextEncoder().encode(text);
   const hash = await crypto.subtle.digest("SHA-256", enc);
-  return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,"0")).join("");
 }
 async function copyText(t) {
-  try {
-    await navigator.clipboard.writeText(t);
-    alert("הועתק!");
-  } catch {
-    prompt("העתק ידנית:", t);
-  }
+  try { await navigator.clipboard.writeText(t); alert("הועתק!"); }
+  catch { prompt("העתק ידנית:", t); }
+}
+function formatMs(ms) {
+  if (ms <= 0) return "00:00:00";
+  const total = Math.floor(ms / 1000);
+  const h = String(Math.floor(total / 3600)).padStart(2,"0");
+  const m = String(Math.floor((total % 3600) / 60)).padStart(2,"0");
+  const s = String(total % 60).padStart(2,"0");
+  return `${h}:${m}:${s}`;
 }
 
 // ===== מצב גלובלי =====
 let formId = qs().get("id") || "";
-let adminKey = qs().get("admin") || ""; // רק מומחה
-let adminHash = ""; // נשמר בדוקומנט
+let adminKey = qs().get("admin") || "";
+let adminHash = "";
+
 let isExpertPage = !!document.getElementById("mainTable");
 let isPlayerPage = !!document.getElementById("playerTable");
 
 let formData = {
-  matches: [], // [{id, day, league, home, away}]
-  results: {}, // { matchId: {player:true} }
+  matches: [],
+  results: {},
   createdAt: 0,
+  // ===== טיימר =====
+  guessStartAt: null,   // מספר (ms) או null
+  guessEndAt: null,     // מספר (ms) או null
+  guessClosed: false    // boolean
 };
 
-let guessesByPlayer = {}; // {player: {matchId:"1|X|2"}}
+let guessesByPlayer = {};
 let resultMode = false;
 
-// ===== נתיבים =====
-function formRef() {
-  return doc(db, "forms", formId);
-}
-function guessesColRef() {
-  return collection(db, "forms", formId, "guesses");
-}
-function guessDocRef(player) {
-  return doc(db, "forms", formId, "guesses", player);
-}
+let expertTimerInterval = null;
+let playerTimerInterval = null;
 
-// ===== INIT לפי דף =====
+// ===== נתיבים =====
+function formRef() { return doc(db, "forms", formId); }
+function guessesColRef() { return collection(db, "forms", formId, "guesses"); }
+function guessDocRef(player) { return doc(db, "forms", formId, "guesses", player); }
+
+// ===== INIT =====
 if (isExpertPage) initExpert();
 if (isPlayerPage) initPlayer();
 
-// ---------------- EXPERT ----------------
+// ===================== EXPERT =====================
 async function initExpert() {
   const btnNew = document.getElementById("btnNew");
   const btnCopyExpert = document.getElementById("btnCopyExpert");
@@ -91,6 +90,11 @@ async function initExpert() {
   const btnMode = document.getElementById("btnMode");
   const btnDelete = document.getElementById("btnDelete");
   const btnClear = document.getElementById("btnClear");
+
+  // טיימר
+  const btnStartGuess = document.getElementById("btnStartGuess");
+  const btnStopGuess  = document.getElementById("btnStopGuess");
+  const guessStatus   = document.getElementById("guessStatus");
 
   btnNew.addEventListener("click", async () => {
     const newId = makeId(10);
@@ -102,11 +106,14 @@ async function initExpert() {
       matches: [],
       results: {},
       createdAt: Date.now(),
+      // טיימר
+      guessStartAt: null,
+      guessEndAt: null,
+      guessClosed: false
     });
 
     const base = getBaseUrl();
-    const expertUrl = `${base}/expert.html?id=${newId}&admin=${encodeURIComponent(newAdminKey)}`;
-    location.href = expertUrl;
+    location.href = `${base}/expert.html?id=${newId}&admin=${encodeURIComponent(newAdminKey)}`;
   });
 
   if (!formId) {
@@ -122,7 +129,6 @@ async function initExpert() {
   adminHash = snap.data().adminHash || "";
 
   const ok = adminKey ? (await sha256(adminKey)) === adminHash : false;
-
   if (!ok) {
     linkInfo.textContent = "⚠️ חסר/לא נכון מפתח מומחה בקישור. פתח את קישור המומחה המקורי.";
     disableExpertActions();
@@ -132,30 +138,41 @@ async function initExpert() {
     btnCopyExpert.disabled = false;
     btnCopyPlayers.disabled = false;
 
+    btnStartGuess.disabled = false;
+    btnStopGuess.disabled = false;
+
     const base = getBaseUrl();
-    const expertUrl = `${base}/expert.html?id=${formId}&admin=${encodeURIComponent(adminKey)}`;
+    const expertUrl  = `${base}/expert.html?id=${formId}&admin=${encodeURIComponent(adminKey)}`;
     const playersUrl = `${base}/player.html?id=${formId}`;
 
     linkInfo.innerHTML = `
       <div>קישור מומחה (שמור לעצמך): <b>${expertUrl}</b></div>
       <div>קישור שחקנים (לשליחה בוואטסאפ): <b>${playersUrl}</b></div>
     `;
-
     btnCopyExpert.addEventListener("click", () => copyText(expertUrl));
     btnCopyPlayers.addEventListener("click", () => copyText(playersUrl));
   }
 
-  // מאזין למסמך הטופס (משחקים + תוצאות)
+  // מאזין למסמך הטופס
   onSnapshot(formRef(), async (s) => {
     if (!s.exists()) return;
     const d = s.data();
+
     formData.matches = Array.isArray(d.matches) ? d.matches : [];
-    formData.results = d.results && typeof d.results === "object" ? d.results : {};
+    formData.results = (d.results && typeof d.results === "object") ? d.results : {};
+    formData.guessStartAt = d.guessStartAt ?? null;
+    formData.guessEndAt = d.guessEndAt ?? null;
+    formData.guessClosed = !!d.guessClosed;
+
     adminHash = d.adminHash || adminHash;
 
     await loadAllGuesses();
-    renderExpertTable();   // ✅ עכשיו כולל rowspan גם לליגה
+    renderExpertTable();
     renderScoreTable();
+
+    // טיימר מומחה
+    renderExpertGuessStatus(guessStatus);
+    startExpertTicker(guessStatus);
   });
 
   // הוספת משחק
@@ -169,7 +186,7 @@ async function initExpert() {
       day: document.getElementById("day").value.trim(),
       league: document.getElementById("league").value.trim(),
       home: document.getElementById("home").value.trim(),
-      away: document.getElementById("away").value.trim(),
+      away: document.getElementById("away").value.trim()
     };
 
     const matches = [...formData.matches, match];
@@ -177,34 +194,51 @@ async function initExpert() {
     form.reset();
   });
 
-  // מצב חישוב
+  // מצב חישוב נקודות
   btnMode.addEventListener("click", async () => {
     if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
     resultMode = !resultMode;
     btnMode.textContent = resultMode ? "מצב חישוב נקודות (פעיל)" : "מצב חישוב נקודות (כבוי)";
   });
 
+  // התחלת טיימר (24 שעות)
+  btnStartGuess.addEventListener("click", async () => {
+    if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
+    const startAt = Date.now();
+    const endAt = startAt + GUESS_WINDOW_MS;
+
+    await updateDoc(formRef(), {
+      guessStartAt: startAt,
+      guessEndAt: endAt,
+      guessClosed: false
+    });
+  });
+
+  // עצירת טיימר עכשיו
+  btnStopGuess.addEventListener("click", async () => {
+    if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
+    await updateDoc(formRef(), {
+      guessClosed: true,
+      guessEndAt: Date.now()
+    });
+  });
+
   // מחיקת משחק לפי מספר שורה
   btnDelete.addEventListener("click", async () => {
     if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
-
     const n = Number(document.getElementById("deleteIndex").value);
-    if (!Number.isFinite(n) || n < 1 || n > formData.matches.length) {
-      return alert("מספר שורה לא תקין");
-    }
+    if (!Number.isFinite(n) || n < 1 || n > formData.matches.length) return alert("מספר שורה לא תקין");
 
     const idx = n - 1;
     const removed = formData.matches[idx];
     const matches = formData.matches.filter((_, i) => i !== idx);
 
-    // להסיר תוצאות של המשחק
     const results = { ...(formData.results || {}) };
     if (removed?.id && results[removed.id]) delete results[removed.id];
 
-    // להסיר גם ניחושים של המשחק הזה מכל השחקנים
     const batch = writeBatch(db);
     const snaps = await getDocs(guessesColRef());
-    snaps.forEach((gs) => {
+    snaps.forEach(gs => {
       const data = gs.data() || {};
       const picks = data.picks || {};
       if (removed?.id && picks[removed.id] !== undefined) {
@@ -215,7 +249,6 @@ async function initExpert() {
 
     batch.update(formRef(), { matches, results });
     await batch.commit();
-
     document.getElementById("deleteIndex").value = "";
   });
 
@@ -226,31 +259,34 @@ async function initExpert() {
 
     const snaps = await getDocs(guessesColRef());
     const batch = writeBatch(db);
-    snaps.forEach((gs) => batch.delete(gs.ref));
-    batch.update(formRef(), { matches: [], results: {} });
+    snaps.forEach(gs => batch.delete(gs.ref));
+    batch.update(formRef(), {
+      matches: [],
+      results: {},
+      guessStartAt: null,
+      guessEndAt: null,
+      guessClosed: false
+    });
     await batch.commit();
   });
 }
 
 function disableExpertActions() {
-  const ids = ["matchForm", "btnDelete", "btnClear", "btnMode"];
-  ids.forEach((id) => {
+  const ids = ["matchForm","btnDelete","btnClear","btnMode","btnStartGuess","btnStopGuess"];
+  ids.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (el.tagName === "FORM") {
-      el.querySelectorAll("input,button,select").forEach((x) => (x.disabled = true));
-    } else {
-      el.disabled = true;
-    }
+    if (el.tagName === "FORM") el.querySelectorAll("input,button,select").forEach(x => x.disabled = true);
+    else el.disabled = true;
   });
 }
 function enableExpertActions() {
   const form = document.getElementById("matchForm");
-  if (form) form.querySelectorAll("input,button,select").forEach((x) => (x.disabled = false));
-  const btnDelete = document.getElementById("btnDelete");
-  const btnClear = document.getElementById("btnClear");
-  if (btnDelete) btnDelete.disabled = false;
-  if (btnClear) btnClear.disabled = false;
+  if (form) form.querySelectorAll("input,button,select").forEach(x => x.disabled = false);
+  ["btnDelete","btnClear"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = false;
+  });
 }
 
 async function isAdminOk() {
@@ -260,27 +296,53 @@ async function isAdminOk() {
     if (!snap.exists()) return false;
     adminHash = snap.data().adminHash || "";
   }
-  const h = await sha256(adminKey);
-  return h === adminHash;
+  return (await sha256(adminKey)) === adminHash;
 }
 
 async function loadAllGuesses() {
   guessesByPlayer = {};
   const snaps = await getDocs(guessesColRef());
-  snaps.forEach((s) => {
+  snaps.forEach(s => {
     const player = s.id;
     const data = s.data() || {};
     guessesByPlayer[player] = data.picks || {};
   });
 }
 
-// ✅ טבלה למומחה: rowspan גם ליום וגם לליגה (רק ברצף אחד מתחת לשני)
+function getGuessState() {
+  const startAt = formData.guessStartAt;
+  const endAt = formData.guessEndAt;
+  const closed = !!formData.guessClosed;
+
+  if (!startAt || !endAt) return { state: "not_started", remainingMs: 0 };
+  const now = Date.now();
+  const remaining = endAt - now;
+
+  if (closed) return { state: "closed", remainingMs: 0 };
+  if (remaining <= 0) return { state: "expired", remainingMs: 0 };
+  return { state: "running", remainingMs: remaining };
+}
+
+function renderExpertGuessStatus(el) {
+  if (!el) return;
+  const gs = getGuessState();
+  if (gs.state === "not_started") el.textContent = "לא התחיל עדיין. לחץ 'התחל זמן ניחושים'.";
+  if (gs.state === "running") el.textContent = `ניחושים פתוחים. נשאר: ${formatMs(gs.remainingMs)}`;
+  if (gs.state === "expired") el.textContent = "הזמן נגמר (24 שעות עברו).";
+  if (gs.state === "closed") el.textContent = "ניחושים נסגרו ידנית ע״י המומחה.";
+}
+
+function startExpertTicker(el) {
+  if (expertTimerInterval) clearInterval(expertTimerInterval);
+  expertTimerInterval = setInterval(() => renderExpertGuessStatus(el), 1000);
+}
+
+// ===== טבלה למומחה: rowspan גם ליום וגם לליגה (רק ברצף) =====
 function renderExpertTable() {
   const table = document.getElementById("mainTable");
   if (!table) return;
 
   table.innerHTML = "";
-
   const header = document.createElement("tr");
   header.innerHTML = `
     <th>#</th>
@@ -288,18 +350,17 @@ function renderExpertTable() {
     <th>ליגה</th>
     <th>בית</th>
     <th>חוץ</th>
-    ${PLAYERS_ORDER.map((p) => `<th>${p}</th>`).join("")}
+    ${PLAYERS_ORDER.map(p => `<th>${p}</th>`).join("")}
   `;
   table.appendChild(header);
 
   const matches = formData.matches || [];
   const results = formData.results || {};
 
-  // חישוב spans ליום ולליגה לפי רצף בלבד
-  const daySpanAt = {};     // startIndex -> span
-  const leagueSpanAt = {};  // startIndex -> span
+  const daySpanAt = {};
+  const leagueSpanAt = {};
 
-  // Day runs
+  // day runs
   let i = 0;
   while (i < matches.length) {
     const day = matches[i].day;
@@ -309,7 +370,7 @@ function renderExpertTable() {
     i += span;
   }
 
-  // League runs (עצמאי מהיום)
+  // league runs
   i = 0;
   while (i < matches.length) {
     const lg = matches[i].league;
@@ -319,14 +380,11 @@ function renderExpertTable() {
     i += span;
   }
 
-  // ציור שורה-שורה
   for (let r = 0; r < matches.length; r++) {
     const m = matches[r];
     const tr = document.createElement("tr");
-
     tr.innerHTML += `<td>${r + 1}</td>`;
 
-    // יום: רק בתחילת רצף
     if (daySpanAt[r]) {
       const tdDay = document.createElement("td");
       tdDay.textContent = m.day;
@@ -334,7 +392,6 @@ function renderExpertTable() {
       tr.appendChild(tdDay);
     }
 
-    // ליגה: רק בתחילת רצף
     if (leagueSpanAt[r]) {
       const tdLeague = document.createElement("td");
       tdLeague.textContent = m.league;
@@ -345,8 +402,7 @@ function renderExpertTable() {
     tr.innerHTML += `<td>${m.home}</td>`;
     tr.innerHTML += `<td>${m.away}</td>`;
 
-    // תאי שחקנים: ירוק לפי matchId + player (כל שחקן בנפרד)
-    PLAYERS_ORDER.forEach((player) => {
+    PLAYERS_ORDER.forEach(player => {
       const matchId = m.id;
       const pick = guessesByPlayer[player]?.[matchId] || "";
       const isGreen = !!results?.[matchId]?.[player];
@@ -370,9 +426,8 @@ function renderExpertTable() {
 }
 
 async function toggleGreen(matchId, player) {
-  // בניה מחדש של results ושמירה בענן
-  const current = formData.results && typeof formData.results === "object" ? formData.results : {};
-  const results = JSON.parse(JSON.stringify(current)); // clone בטוח
+  const current = (formData.results && typeof formData.results === "object") ? formData.results : {};
+  const results = JSON.parse(JSON.stringify(current));
 
   results[matchId] = results[matchId] || {};
   if (results[matchId][player]) delete results[matchId][player];
@@ -381,30 +436,30 @@ async function toggleGreen(matchId, player) {
   await updateDoc(formRef(), { results });
 }
 
-// ניקוד: כמה תאים ירוקים לכל שחקן
 function renderScoreTable() {
   const table = document.getElementById("scoreTable");
   if (!table) return;
 
   const results = formData.results || {};
   const scores = {};
-  PLAYERS_ORDER.forEach((p) => (scores[p] = 0));
+  PLAYERS_ORDER.forEach(p => scores[p] = 0);
 
-  Object.keys(results).forEach((matchId) => {
-    PLAYERS_ORDER.forEach((p) => {
+  Object.keys(results).forEach(matchId => {
+    PLAYERS_ORDER.forEach(p => {
       if (results?.[matchId]?.[p]) scores[p]++;
     });
   });
 
   table.innerHTML = `
     <tr><th>שחקן</th><th>ניחושים נכונים</th></tr>
-    ${PLAYERS_ORDER.map((p) => `<tr><td>${p}</td><td>${scores[p]}</td></tr>`).join("")}
+    ${PLAYERS_ORDER.map(p => `<tr><td>${p}</td><td>${scores[p]}</td></tr>`).join("")}
   `;
 }
 
-// ---------------- PLAYER ----------------
+// ===================== PLAYER =====================
 async function initPlayer() {
   const info = document.getElementById("playerInfo");
+  const timerInfo = document.getElementById("timerInfo");
   const btnSave = document.getElementById("btnSave");
   const playerSel = document.getElementById("player");
 
@@ -421,8 +476,16 @@ async function initPlayer() {
       return;
     }
     const d = s.data();
+
     formData.matches = Array.isArray(d.matches) ? d.matches : [];
-    renderPlayerTable(); // ✅ גם כאן rowspan ליום+ליגה
+    formData.guessStartAt = d.guessStartAt ?? null;
+    formData.guessEndAt = d.guessEndAt ?? null;
+    formData.guessClosed = !!d.guessClosed;
+
+    renderPlayerTable();
+    renderPlayerTimer(timerInfo, btnSave);
+
+    startPlayerTicker(timerInfo, btnSave);
   });
 
   playerSel.addEventListener("change", async () => {
@@ -431,7 +494,7 @@ async function initPlayer() {
     info.textContent = `נבחר: ${name}`;
 
     const snap = await getDoc(guessDocRef(name));
-    const picks = snap.exists() ? snap.data().picks || {} : {};
+    const picks = snap.exists() ? (snap.data().picks || {}) : {};
     fillPlayerPicks(picks);
   });
 
@@ -439,8 +502,14 @@ async function initPlayer() {
     const name = playerSel.value;
     if (!name) return alert("בחר שם שחקן");
 
+    // בדיקת טיימר לפני שמירה
+    const gs = getGuessState();
+    if (gs.state !== "running") {
+      return alert("הניחושים סגורים/לא התחילו.");
+    }
+
     const picks = {};
-    document.querySelectorAll("select[data-mid]").forEach((sel) => {
+    document.querySelectorAll("select[data-mid]").forEach(sel => {
       const mid = sel.getAttribute("data-mid");
       const val = sel.value;
       if (val) picks[mid] = val;
@@ -451,14 +520,50 @@ async function initPlayer() {
   });
 }
 
-// ✅ טבלת שחקן: rowspan גם ליום וגם לליגה (רק רצף)
+function renderPlayerTimer(el, btnSave) {
+  if (!el) return;
+  const gs = getGuessState();
+
+  const selects = document.querySelectorAll("select[data-mid]");
+  const disableAll = (flag) => {
+    selects.forEach(s => s.disabled = flag);
+    if (btnSave) btnSave.disabled = flag;
+  };
+
+  if (gs.state === "not_started") {
+    el.textContent = "הניחושים עדיין לא נפתחו. חכה שהמומחה יתחיל את הטיימר.";
+    disableAll(true);
+    return;
+  }
+  if (gs.state === "running") {
+    el.textContent = `ניחושים פתוחים. נשאר: ${formatMs(gs.remainingMs)}`;
+    disableAll(false);
+    return;
+  }
+  if (gs.state === "expired") {
+    el.textContent = "הזמן נגמר. הניחושים נסגרו.";
+    disableAll(true);
+    return;
+  }
+  if (gs.state === "closed") {
+    el.textContent = "המומחה סגר את הניחושים מוקדם.";
+    disableAll(true);
+    return;
+  }
+}
+
+function startPlayerTicker(el, btnSave) {
+  if (playerTimerInterval) clearInterval(playerTimerInterval);
+  playerTimerInterval = setInterval(() => renderPlayerTimer(el, btnSave), 1000);
+}
+
+// טבלת שחקן (rowspan יום+ליגה ברצף)
 function renderPlayerTable() {
   const table = document.getElementById("playerTable");
   if (!table) return;
 
   const matches = formData.matches || [];
 
-  // חישוב spans ליום ולליגה לפי רצף בלבד
   const daySpanAt = {};
   const leagueSpanAt = {};
 
@@ -511,24 +616,22 @@ function renderPlayerTable() {
     }
 
     tr.innerHTML += `<td>${m.home} - ${m.away}</td>`;
-
-    const tdPick = document.createElement("td");
-    tdPick.innerHTML = `
-      <select data-mid="${m.id}">
-        <option value=""></option>
-        <option value="1">1</option>
-        <option value="X">X</option>
-        <option value="2">2</option>
-      </select>
+    tr.innerHTML += `
+      <td>
+        <select data-mid="${m.id}">
+          <option value=""></option>
+          <option value="1">1</option>
+          <option value="X">X</option>
+          <option value="2">2</option>
+        </select>
+      </td>
     `;
-    tr.appendChild(tdPick);
-
     table.appendChild(tr);
   }
 }
 
 function fillPlayerPicks(picks) {
-  document.querySelectorAll("select[data-mid]").forEach((sel) => {
+  document.querySelectorAll("select[data-mid]").forEach(sel => {
     const mid = sel.getAttribute("data-mid");
     sel.value = picks?.[mid] || "";
   });
