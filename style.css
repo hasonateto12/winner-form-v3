@@ -1,5 +1,6 @@
 /* ============================
-   FULL STYLE.CSS (Light/Dark + Buttons + Toast + Tables)
+   style.css (FULL) — PRO UI + Toast + Dark Mode
+   + Tables NORMAL (no gradients, normal font)
    ============================ */
 
 :root{
@@ -41,13 +42,12 @@ body[data-theme="dark"]{
 body{
   font-family: Arial, sans-serif;
   padding: 20px;
+  color: var(--text);
 
   background:
     radial-gradient(1200px 500px at 80% -10%, rgba(37,99,235,0.12), transparent 60%),
     radial-gradient(900px 400px at 20% 0%, rgba(16,185,129,0.10), transparent 55%),
-    var(--bg) !important;
-
-  color: var(--text);
+    var(--bg);
 }
 
 h2,h3{
@@ -64,7 +64,9 @@ hr{
   opacity: 0.9;
 }
 
-/* CONTROL CARDS */
+/* ============================
+   CONTROL CARDS
+   ============================ */
 .controls{
   display: flex;
   flex-wrap: wrap;
@@ -77,7 +79,9 @@ hr{
   box-shadow: var(--shadow);
 }
 
-/* INPUTS */
+/* ============================
+   INPUTS
+   ============================ */
 input, select{
   appearance: none;
   border: 1px solid var(--line);
@@ -105,7 +109,9 @@ input:disabled, select:disabled{
   background: rgba(148,163,184,0.08);
 }
 
-/* BUTTONS */
+/* ============================
+   BUTTONS
+   ============================ */
 button{
   border: 0;
   border-radius: 12px;
@@ -116,12 +122,12 @@ button{
   cursor: pointer;
   transition: transform .08s ease, box-shadow .2s ease, filter .2s ease;
   box-shadow: var(--shadow2);
-  background: linear-gradient(180deg, rgba(255,255,255,1), rgba(248,250,252,1));
+  background: #ffffff;
   color: var(--text);
 }
 
 body[data-theme="dark"] button{
-  background: linear-gradient(180deg, rgba(30,41,59,1), rgba(15,23,42,1));
+  background: rgba(30,41,59,1);
   color: var(--text);
 }
 
@@ -172,7 +178,9 @@ button:disabled{
   box-shadow: 0 14px 30px rgba(99,102,241,0.20);
 }
 
-/* MATCH FORM AS GRID */
+/* ============================
+   MATCH FORM AS GRID
+   ============================ */
 #matchForm{
   display: grid;
   grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;
@@ -185,59 +193,75 @@ button:disabled{
   box-shadow: var(--shadow);
 }
 
-/* TABLES LOOK */
+/* ============================
+   TABLES (NORMAL LOOK)
+   - no gradients
+   - normal font
+   ============================ */
 table{
   border-collapse: collapse;
-  background: var(--card);
   width: 100%;
+  background: var(--card);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: var(--shadow);
 }
 
 th, td{
-  border: 1px solid rgba(0,0,0,0.55);
+  border: 1px solid rgba(0,0,0,0.65);
   padding: 8px 10px;
   text-align: center;
+  color: var(--text);
+  background: var(--card);
+  font-weight: 400; /* רגיל */
 }
 
 body[data-theme="dark"] th,
 body[data-theme="dark"] td{
-  border-color: rgba(148,163,184,0.35);
+  border-color: rgba(148,163,184,0.45);
 }
 
+/* headers: plain background, slightly bold */
 th{
-  background: linear-gradient(180deg, rgba(255,255,255,1), rgba(248,250,252,1));
-  font-weight: 900;
-}
-body[data-theme="dark"] th{
-  background: linear-gradient(180deg, rgba(30,41,59,1), rgba(15,23,42,1));
+  font-weight: 700;
 }
 
-/* Totals table */
-#totalsWrap{ margin-top: 8px; }
+/* ============================
+   Totals table (separate, aligned)
+   ============================ */
+#totalsWrap{
+  margin-top: 8px;
+}
+
 #totalsTable{
   width: 100%;
   border-collapse: collapse;
   background: var(--card);
 }
+
 #totalsTable td{
-  border: 2px solid rgba(0,0,0,0.7);
+  border: 2px solid rgba(0,0,0,0.75);
   padding: 10px;
-  font-weight: 900;
+  background: var(--card);
+  color: var(--text);
+  font-weight: 700;
 }
+
 body[data-theme="dark"] #totalsTable td{
-  border-color: rgba(148,163,184,0.45);
+  border-color: rgba(148,163,184,0.55);
 }
+
 #totalsTable td.totals-label{
   text-align: right;
   padding-right: 14px;
   white-space: nowrap;
 }
+
 #totalsTable td.winner{
   background: #00c853;
   color: #051b10;
 }
+
 #totalsTable td.winner .tag{
   display: inline-block;
   margin-right: 8px;
@@ -248,7 +272,9 @@ body[data-theme="dark"] #totalsTable td{
   background: rgba(255,255,255,0.70);
 }
 
-/* TOAST */
+/* ============================
+   TOAST
+   ============================ */
 .toast-host{
   position: fixed;
   left: 50%;
@@ -304,7 +330,9 @@ body[data-theme="dark"] .toast{
   font-weight: 800;
 }
 
-/* RESPONSIVE */
+/* ============================
+   RESPONSIVE
+   ============================ */
 @media (max-width: 900px){
   #matchForm{
     grid-template-columns: 1fr 1fr;
@@ -312,50 +340,4 @@ body[data-theme="dark"] .toast{
   #matchForm button{
     grid-column: 1 / -1;
   }
-}
-
-
-
-/* ===== TABLE FONT + HEADERS: NORMAL (override) ===== */
-
-/* טבלה – פונט רגיל */
-table, th, td {
-  font-weight: 400 !important;
-}
-
-/* כותרות טבלה – רקע אחיד בלי גרדיאנט */
-th {
-  background: var(--card) !important;
-  color: var(--text) !important;
-  font-weight: 700 !important; /* רק כותרת קצת מודגשת, לא "בהירה" */
-}
-
-/* תאים רגילים */
-td {
-  background: var(--card) !important;
-  color: var(--text) !important;
-}
-
-/* קווי טבלה במצב רגיל */
-th, td {
-  border-color: rgba(0,0,0,0.65) !important;
-}
-
-/* קווי טבלה במצב כהה */
-body[data-theme="dark"] th,
-body[data-theme="dark"] td {
-  border-color: rgba(148,163,184,0.45) !important;
-}
-
-/* totals table גם רגיל */
-#totalsTable td {
-  font-weight: 700 !important;
-  background: var(--card) !important;
-  color: var(--text) !important;
-}
-
-/* winner נשאר ירוק */
-#totalsTable td.winner {
-  background: #00c853 !important;
-  color: #051b10 !important;
 }
