@@ -313,3 +313,49 @@ body[data-theme="dark"] .toast{
     grid-column: 1 / -1;
   }
 }
+
+
+
+/* ===== TABLE FONT + HEADERS: NORMAL (override) ===== */
+
+/* טבלה – פונט רגיל */
+table, th, td {
+  font-weight: 400 !important;
+}
+
+/* כותרות טבלה – רקע אחיד בלי גרדיאנט */
+th {
+  background: var(--card) !important;
+  color: var(--text) !important;
+  font-weight: 700 !important; /* רק כותרת קצת מודגשת, לא "בהירה" */
+}
+
+/* תאים רגילים */
+td {
+  background: var(--card) !important;
+  color: var(--text) !important;
+}
+
+/* קווי טבלה במצב רגיל */
+th, td {
+  border-color: rgba(0,0,0,0.65) !important;
+}
+
+/* קווי טבלה במצב כהה */
+body[data-theme="dark"] th,
+body[data-theme="dark"] td {
+  border-color: rgba(148,163,184,0.45) !important;
+}
+
+/* totals table גם רגיל */
+#totalsTable td {
+  font-weight: 700 !important;
+  background: var(--card) !important;
+  color: var(--text) !important;
+}
+
+/* winner נשאר ירוק */
+#totalsTable td.winner {
+  background: #00c853 !important;
+  color: #051b10 !important;
+}
