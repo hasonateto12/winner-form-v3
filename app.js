@@ -12,9 +12,8 @@ import {
 
 // ===== קבועים =====
 const PLAYERS_ORDER = ["חגי","ראזי","סעיד","ווסים","צביר","שמעון"];
-const GUESS_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 שעות
 
-// ===== עזרי URL =====
+// ===== עזרי URL/תצוגה =====
 function qs() { return new URLSearchParams(location.search); }
 function getBaseUrl() { return location.origin + location.pathname.replace(/\/[^\/]*$/, ""); }
 function makeId(len = 8) {
@@ -59,10 +58,9 @@ let formData = {
   matches: [],
   results: {},
   createdAt: 0,
-  // ===== טיימר =====
-  guessStartAt: null,   // מספר (ms) או null
-  guessEndAt: null,     // מספר (ms) או null
-  guessClosed: false    // boolean
+  guessStartAt: null,
+  guessEndAt: null,
+  guessClosed: false
 };
 
 let guessesByPlayer = {};
@@ -96,6 +94,10 @@ async function initExpert() {
   const btnStopGuess  = document.getElementById("btnStopGuess");
   const guessStatus   = document.getElementById("guessStatus");
 
+  // שדות זמן (קיימים רק במומחה)
+  const guessAmountEl = document.getElementById("guessAmount");
+  const guessUnitEl   = document.getElementById("guessUnit");
+
   btnNew.addEventListener("click", async () => {
     const newId = makeId(10);
     const newAdminKey = makeKey(28);
@@ -106,7 +108,6 @@ async function initExpert() {
       matches: [],
       results: {},
       createdAt: Date.now(),
-      // טיימר
       guessStartAt: null,
       guessEndAt: null,
       guessClosed: false
@@ -137,7 +138,6 @@ async function initExpert() {
     btnMode.disabled = false;
     btnCopyExpert.disabled = false;
     btnCopyPlayers.disabled = false;
-
     btnStartGuess.disabled = false;
     btnStopGuess.disabled = false;
 
@@ -170,7 +170,6 @@ async function initExpert() {
     renderExpertTable();
     renderScoreTable();
 
-    // טיימר מומחה
     renderExpertGuessStatus(guessStatus);
     startExpertTicker(guessStatus);
   });
@@ -201,11 +200,29 @@ async function initExpert() {
     btnMode.textContent = resultMode ? "מצב חישוב נקודות (פעיל)" : "מצב חישוב נקודות (כבוי)";
   });
 
-  // התחלת טיימר (24 שעות)
+  // === פונקציה: זמן מהטופס (דקות/שעות/ימים) ===
+  function getDurationMsFromInputs() {
+    const amount = Number(guessAmountEl?.value);
+    const unit = guessUnitEl?.value || "hours";
+
+    if (!Number.isFinite(amount) || amount <= 0) return null;
+
+    if (unit === "minutes") return amount * 60 * 1000;
+    if (unit === "hours")   return amount * 60 * 60 * 1000;
+    if (unit === "days")    return amount * 24 * 60 * 60 * 1000;
+
+    return null;
+  }
+
+  // התחלת טיימר (לפי זמן שהמומחה בוחר)
   btnStartGuess.addEventListener("click", async () => {
     if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
+
+    const durationMs = getDurationMsFromInputs();
+    if (!durationMs) return alert("משך זמן לא תקין. בחר מספר גדול מ-0.");
+
     const startAt = Date.now();
-    const endAt = startAt + GUESS_WINDOW_MS;
+    const endAt = startAt + durationMs;
 
     await updateDoc(formRef(), {
       guessStartAt: startAt,
@@ -272,7 +289,7 @@ async function initExpert() {
 }
 
 function disableExpertActions() {
-  const ids = ["matchForm","btnDelete","btnClear","btnMode","btnStartGuess","btnStopGuess"];
+  const ids = ["matchForm","btnDelete","btnClear","btnMode","btnStartGuess","btnStopGuess","guessAmount","guessUnit"];
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -283,7 +300,7 @@ function disableExpertActions() {
 function enableExpertActions() {
   const form = document.getElementById("matchForm");
   if (form) form.querySelectorAll("input,button,select").forEach(x => x.disabled = false);
-  ["btnDelete","btnClear"].forEach(id => {
+  ["btnDelete","btnClear","guessAmount","guessUnit"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.disabled = false;
   });
@@ -326,9 +343,9 @@ function getGuessState() {
 function renderExpertGuessStatus(el) {
   if (!el) return;
   const gs = getGuessState();
-  if (gs.state === "not_started") el.textContent = "לא התחיל עדיין. לחץ 'התחל זמן ניחושים'.";
+  if (gs.state === "not_started") el.textContent = "לא התחיל עדיין. בחר משך זמן ולחץ 'התחל זמן ניחושים'.";
   if (gs.state === "running") el.textContent = `ניחושים פתוחים. נשאר: ${formatMs(gs.remainingMs)}`;
-  if (gs.state === "expired") el.textContent = "הזמן נגמר (24 שעות עברו).";
+  if (gs.state === "expired") el.textContent = "הזמן נגמר. הניחושים נסגרו.";
   if (gs.state === "closed") el.textContent = "ניחושים נסגרו ידנית ע״י המומחה.";
 }
 
@@ -337,7 +354,7 @@ function startExpertTicker(el) {
   expertTimerInterval = setInterval(() => renderExpertGuessStatus(el), 1000);
 }
 
-// ===== טבלה למומחה: rowspan גם ליום וגם לליגה (רק ברצף) =====
+// ===== טבלה מומחה: rowspan ליום+ליגה (ברצף בלבד) =====
 function renderExpertTable() {
   const table = document.getElementById("mainTable");
   if (!table) return;
@@ -346,10 +363,10 @@ function renderExpertTable() {
   const header = document.createElement("tr");
   header.innerHTML = `
     <th>#</th>
-    <th>יום המשחק</th>
+    <th>יום</th>
     <th>ליגה</th>
-    <th>קבוצת בית</th>
-    <th>קבוצת חוץ</th>
+    <th>בית</th>
+    <th>חוץ</th>
     ${PLAYERS_ORDER.map(p => `<th>${p}</th>`).join("")}
   `;
   table.appendChild(header);
@@ -451,7 +468,7 @@ function renderScoreTable() {
   });
 
   table.innerHTML = `
-    <tr><th>שמות</th><th>ניחושים</th></tr>
+    <tr><th>שחקן</th><th>ניחושים נכונים</th></tr>
     ${PLAYERS_ORDER.map(p => `<tr><td>${p}</td><td>${scores[p]}</td></tr>`).join("")}
   `;
 }
@@ -484,7 +501,6 @@ async function initPlayer() {
 
     renderPlayerTable();
     renderPlayerTimer(timerInfo, btnSave);
-
     startPlayerTicker(timerInfo, btnSave);
   });
 
@@ -502,11 +518,8 @@ async function initPlayer() {
     const name = playerSel.value;
     if (!name) return alert("בחר שם שחקן");
 
-    // בדיקת טיימר לפני שמירה
     const gs = getGuessState();
-    if (gs.state !== "running") {
-      return alert("הניחושים סגורים/לא התחילו.");
-    }
+    if (gs.state !== "running") return alert("הניחושים סגורים/לא התחילו.");
 
     const picks = {};
     document.querySelectorAll("select[data-mid]").forEach(sel => {

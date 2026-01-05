@@ -39,7 +39,15 @@
 
 <h3>טיימר ניחושים</h3>
 <div class="controls">
-  <button id="btnStartGuess" disabled>התחל זמן ניחושים (24 שעות)</button>
+  <label class="muted">משך זמן:</label>
+  <input id="guessAmount" type="number" min="1" value="24" style="width:90px" />
+  <select id="guessUnit">
+    <option value="minutes">דקות</option>
+    <option value="hours" selected>שעות</option>
+    <option value="days">ימים</option>
+  </select>
+
+  <button id="btnStartGuess" disabled>התחל זמן ניחושים</button>
   <button id="btnStopGuess" disabled>עצור ניחושים עכשיו</button>
   <div class="muted" id="guessStatus"></div>
 </div>
