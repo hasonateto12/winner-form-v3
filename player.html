@@ -8,11 +8,11 @@
 </head>
 <body>
 
-<h2>שחקן – ניחושים</h2>
+<h2>מילוי ניחושים</h2>
 
 <div class="controls">
   <select id="player">
-    <option value="">בחר</option>
+    <option value="">בחר שחקן</option>
     <option>חגי</option>
     <option>ראזי</option>
     <option>סעיד</option>
@@ -21,15 +21,20 @@
     <option>שמעון</option>
   </select>
 
-  <button id="btnSave">שמור ניחושים</button>
+  <button id="btnSave" type="button">💾 שמור ניחושים</button>
+  <button id="themeToggle" type="button">🌙 מצב כהה</button>
+
+  <div class="muted" id="playerInfo"></div>
 </div>
 
-<div class="muted" id="playerInfo"></div>
+<div class="muted" id="timerInfo" style="margin-top:10px;"></div>
 
-<h3>זמן ניחושים</h3>
-<div class="muted" id="timerInfo"></div>
+<hr/>
 
 <table id="playerTable"></table>
+
+<!-- Toast host -->
+<div id="toastHost" class="toast-host"></div>
 
 <script type="module" src="app.js"></script>
 </body>

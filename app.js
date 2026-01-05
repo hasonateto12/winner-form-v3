@@ -10,7 +10,51 @@ import {
   writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-// ===== קבועים =====
+/* =========================
+   UI: Toast + DarkMode
+   ========================= */
+function toast(msg, type = "info", ms = 2600) {
+  const host = document.getElementById("toastHost");
+  if (!host) return alert(msg);
+
+  const el = document.createElement("div");
+  el.className = `toast toast-${type}`;
+  el.innerHTML = `<span class="toast-dot"></span><span class="toast-text">${msg}</span>`;
+  host.appendChild(el);
+
+  requestAnimationFrame(() => el.classList.add("show"));
+  setTimeout(() => {
+    el.classList.remove("show");
+    setTimeout(() => el.remove(), 220);
+  }, ms);
+}
+
+function setTheme(theme) {
+  document.body.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+  const btn = document.getElementById("themeToggle");
+  if (btn) btn.textContent = theme === "dark" ? "☀️ מצב בהיר" : "🌙 מצב כהה";
+}
+
+function initThemeToggle() {
+  const saved = localStorage.getItem("theme") || "light";
+  setTheme(saved);
+
+  const btn = document.getElementById("themeToggle");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    const current = document.body.getAttribute("data-theme") || "light";
+    const next = current === "dark" ? "light" : "dark";
+    setTheme(next);
+    toast(next === "dark" ? "עברנו למצב כהה" : "עברנו למצב בהיר", "success");
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initThemeToggle();
+});
+
+// ===== סדר שחקנים קבוע =====
 const PLAYERS_ORDER = ["חגי","ראזי","סעיד","ווסים","צביר","שמעון"];
 
 // ===== עזרי URL/תצוגה =====
@@ -34,8 +78,12 @@ async function sha256(text) {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,"0")).join("");
 }
 async function copyText(t) {
-  try { await navigator.clipboard.writeText(t); alert("הועתק!"); }
-  catch { prompt("העתק ידנית:", t); }
+  try {
+    await navigator.clipboard.writeText(t);
+    toast("הועתק ✅", "success");
+  } catch {
+    prompt("העתק ידנית:", t);
+  }
 }
 function formatMs(ms) {
   if (ms <= 0) return "00:00:00";
@@ -78,7 +126,7 @@ function guessDocRef(player) { return doc(db, "forms", formId, "guesses", player
 if (isExpertPage) initExpert();
 if (isPlayerPage) initPlayer();
 
-// ===================== EXPERT =====================
+/* ===================== EXPERT ===================== */
 async function initExpert() {
   const btnNew = document.getElementById("btnNew");
   const btnCopyExpert = document.getElementById("btnCopyExpert");
@@ -145,8 +193,8 @@ async function initExpert() {
     const playersUrl = `${base}/player.html?id=${formId}`;
 
     linkInfo.innerHTML = `
-      <div>קישור מומחה (שמור לעצמך): <b>${expertUrl}</b></div>
-      <div>קישור שחקנים (לשליחה בוואטסאפ): <b>${playersUrl}</b></div>
+      <div class="muted">קישור מומחה (שמור לעצמך): <b>${expertUrl}</b></div>
+      <div class="muted">קישור שחקנים (לשליחה): <b>${playersUrl}</b></div>
     `;
     btnCopyExpert.addEventListener("click", () => copyText(expertUrl));
     btnCopyPlayers.addEventListener("click", () => copyText(playersUrl));
@@ -165,9 +213,8 @@ async function initExpert() {
     adminHash = d.adminHash || adminHash;
 
     await loadAllGuesses();
-    renderExpertTable();     // טבלה ראשית
-    renderTotalsOutside();   // ✅ שורת סה״כ מחוץ לטבלה + WINNER
-
+    renderExpertTable();
+    renderTotalsOutside(); // סה"כ (שמות מעל מספרים)
     renderExpertGuessStatus(guessStatus);
     startExpertTicker(guessStatus);
   });
@@ -176,7 +223,7 @@ async function initExpert() {
   const form = document.getElementById("matchForm");
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
+    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
     const match = {
       id: makeId(12),
@@ -189,13 +236,15 @@ async function initExpert() {
     const matches = [...formData.matches, match];
     await updateDoc(formRef(), { matches });
     form.reset();
+    toast("משחק נוסף ✅", "success");
   });
 
   // מצב חישוב
   btnMode.addEventListener("click", async () => {
-    if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
+    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
     resultMode = !resultMode;
-    btnMode.textContent = resultMode ? "מצב חישוב נקודות (פעיל)" : "מצב חישוב נקודות (כבוי)";
+    btnMode.textContent = resultMode ? "✅ מצב חישוב נקודות (פעיל)" : "✅ מצב חישוב נקודות (כבוי)";
+    toast(resultMode ? "מצב חישוב הופעל" : "מצב חישוב כובה", "info");
   });
 
   function getDurationMsFromInputs() {
@@ -210,9 +259,9 @@ async function initExpert() {
 
   // התחלת טיימר
   btnStartGuess.addEventListener("click", async () => {
-    if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
+    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
     const durationMs = getDurationMsFromInputs();
-    if (!durationMs) return alert("משך זמן לא תקין. בחר מספר גדול מ-0.");
+    if (!durationMs) return toast("משך זמן לא תקין", "warning");
 
     const startAt = Date.now();
     const endAt = startAt + durationMs;
@@ -222,22 +271,27 @@ async function initExpert() {
       guessEndAt: endAt,
       guessClosed: false
     });
+
+    toast("הניחושים נפתחו 🕒", "success");
   });
 
   // עצירה מוקדמת
   btnStopGuess.addEventListener("click", async () => {
-    if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
+    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
     await updateDoc(formRef(), {
       guessClosed: true,
       guessEndAt: Date.now()
     });
+    toast("ניחושים נסגרו ⏹", "warning");
   });
 
   // מחיקת משחק
   btnDelete.addEventListener("click", async () => {
-    if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
+    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
     const n = Number(document.getElementById("deleteIndex").value);
-    if (!Number.isFinite(n) || n < 1 || n > formData.matches.length) return alert("מספר שורה לא תקין");
+    if (!Number.isFinite(n) || n < 1 || n > formData.matches.length) {
+      return toast("מספר שורה לא תקין", "error");
+    }
 
     const idx = n - 1;
     const removed = formData.matches[idx];
@@ -260,11 +314,12 @@ async function initExpert() {
     batch.update(formRef(), { matches, results });
     await batch.commit();
     document.getElementById("deleteIndex").value = "";
+    toast("המשחק נמחק ✅", "success");
   });
 
   // ניקוי הכל
   btnClear.addEventListener("click", async () => {
-    if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
+    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
     if (!confirm("למחוק את כל המשחקים, הניחושים והתוצאות?")) return;
 
     const snaps = await getDocs(guessesColRef());
@@ -278,6 +333,7 @@ async function initExpert() {
       guessClosed: false
     });
     await batch.commit();
+    toast("הטבלה נוקתה ✅", "success");
   });
 }
 
@@ -336,7 +392,7 @@ function getGuessState() {
 function renderExpertGuessStatus(el) {
   if (!el) return;
   const gs = getGuessState();
-  if (gs.state === "not_started") el.textContent = "לא התחיל עדיין. בחר משך זמן ולחץ 'התחל זמן ניחושים'.";
+  if (gs.state === "not_started") el.textContent = "ניחושים עדיין לא התחילו.";
   if (gs.state === "running") el.textContent = `ניחושים פתוחים. נשאר: ${formatMs(gs.remainingMs)}`;
   if (gs.state === "expired") el.textContent = "הזמן נגמר. הניחושים נסגרו.";
   if (gs.state === "closed") el.textContent = "ניחושים נסגרו ידנית ע״י המומחה.";
@@ -424,7 +480,7 @@ function renderExpertTable() {
 
       td.addEventListener("click", async () => {
         if (!resultMode) return;
-        if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
+        if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
         await toggleGreen(matchId, player);
       });
 
@@ -446,13 +502,12 @@ async function toggleGreen(matchId, player) {
   await updateDoc(formRef(), { results });
 }
 
-// ✅ שורת סה״כ מחוץ לטבלה + WINNER (מי שהכי גבוה)
+// ===== סה"כ: שמות מעל מספרים + התאמה מדויקת לרוחבי עמודות (colgroup) =====
 function renderTotalsOutside() {
   const totalsTable = document.getElementById("totalsTable");
   const mainTable = document.getElementById("mainTable");
   if (!totalsTable || !mainTable) return;
 
-  // ===== חישוב ניקוד =====
   const results = formData.results || {};
   const totals = {};
   PLAYERS_ORDER.forEach(p => totals[p] = 0);
@@ -466,13 +521,12 @@ function renderTotalsOutside() {
   const values = PLAYERS_ORDER.map(p => totals[p] || 0);
   const max = values.length ? Math.max(...values) : 0;
 
-  // ===== ניקוי =====
   totalsTable.innerHTML = "";
 
-  // ===== colgroup זהה לטבלה הראשית =====
-  const headerRow = mainTable.querySelector("tr");
-  const ths = Array.from(headerRow.children);
+  const mainHeader = mainTable.querySelector("tr");
+  if (!mainHeader) return;
 
+  const ths = Array.from(mainHeader.children);
   const colgroup = document.createElement("colgroup");
   ths.forEach(th => {
     const col = document.createElement("col");
@@ -481,29 +535,26 @@ function renderTotalsOutside() {
   });
   totalsTable.appendChild(colgroup);
 
-  // ===== שורה 1: שמות שחקנים =====
+  // שורה 1: שמות מעל המספרים (כמו בטופס)
   const namesRow = document.createElement("tr");
-
   const emptyTd = document.createElement("td");
-  emptyTd.colSpan = 5; // # + יום + ליגה + בית + חוץ
+  emptyTd.colSpan = 5; // (#, יום, ליגה, בית, חוץ)
   namesRow.appendChild(emptyTd);
 
   PLAYERS_ORDER.forEach(name => {
     const td = document.createElement("td");
     td.textContent = name;
-    td.style.fontWeight = "bold";
+    td.style.fontWeight = "900";
     namesRow.appendChild(td);
   });
-
   totalsTable.appendChild(namesRow);
 
-  // ===== שורה 2: סה״כ ניחושים =====
+  // שורה 2: סה"כ ניחושים מתחיל מהעמודות של "קבוצת חוץ" והלאה (כל ה-5 הראשונות)
   const totalsRow = document.createElement("tr");
-
   const labelTd = document.createElement("td");
+  labelTd.className = "totals-label";
   labelTd.colSpan = 5;
   labelTd.textContent = 'סה״כ ניחושים';
-  labelTd.className = "totals-label";
   totalsRow.appendChild(labelTd);
 
   PLAYERS_ORDER.forEach(p => {
@@ -514,7 +565,7 @@ function renderTotalsOutside() {
       td.classList.add("winner");
       td.innerHTML = `${val} <span class="tag">WINNER</span>`;
     } else {
-      td.textContent = val;
+      td.textContent = String(val);
     }
     totalsRow.appendChild(td);
   });
@@ -522,29 +573,7 @@ function renderTotalsOutside() {
   totalsTable.appendChild(totalsRow);
 }
 
-
-
-function syncTotalsColumnWidths() {
-  const main = document.getElementById("mainTable");
-  const totals = document.getElementById("totalsTable");
-  if (!main || !totals) return;
-
-  const mainHeader = main.querySelector("tr");
-  const totalRow = totals.querySelector("tr");
-  if (!mainHeader || !totalRow) return;
-
-  // מאפסים קודם
-  totals.style.tableLayout = "fixed";
-
-  // אם יש לנו th עם widths בפועל, נשתמש בהם.
-  // שים לב: totalsRow מתחיל עם td colspan=5, אז אין לנו td לכל אחת מה-5.
-  // לכן אנחנו רק מיישרים את רוחב הטבלה על ידי זה שהטבלה totals היא 100%,
-  // וה-colspan=5 "יאכל" בדיוק את רוחב 5 העמודות הראשונות.
-  // זה עובד טוב כששתי הטבלאות width:100% ו-table-layout:fixed.
-}
-
-
-// ===================== PLAYER =====================
+/* ===================== PLAYER ===================== */
 async function initPlayer() {
   const info = document.getElementById("playerInfo");
   const timerInfo = document.getElementById("timerInfo");
@@ -587,10 +616,10 @@ async function initPlayer() {
 
   btnSave.addEventListener("click", async () => {
     const name = playerSel.value;
-    if (!name) return alert("בחר שם שחקן");
+    if (!name) return toast("בחר שחקן", "warning");
 
     const gs = getGuessState();
-    if (gs.state !== "running") return alert("הניחושים סגורים/לא התחילו.");
+    if (gs.state !== "running") return toast("הניחושים סגורים/לא התחילו", "error");
 
     const picks = {};
     document.querySelectorAll("select[data-mid]").forEach(sel => {
@@ -600,7 +629,7 @@ async function initPlayer() {
     });
 
     await setDoc(guessDocRef(name), { picks }, { merge: true });
-    alert("נשמר בענן ✅");
+    toast("נשמר בענן ✅", "success");
   });
 }
 
@@ -672,7 +701,7 @@ function renderPlayerTable() {
   table.innerHTML = `
     <tr>
       <th>#</th>
-      <th>יום</th>
+      <th>יום המשחק</th>
       <th>ליגה</th>
       <th>משחק</th>
       <th>ניחוש</th>
