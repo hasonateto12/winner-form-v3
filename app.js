@@ -363,10 +363,10 @@ function renderExpertTable() {
   const header = document.createElement("tr");
   header.innerHTML = `
     <th>#</th>
-    <th>יום</th>
+    <th>יום המשחק</th>
     <th>ליגה</th>
-    <th>בית</th>
-    <th>חוץ</th>
+    <th>משחק בית</th>
+    <th>משחק חוץ</th>
     ${PLAYERS_ORDER.map(p => `<th>${p}</th>`).join("")}
   `;
   table.appendChild(header);
@@ -468,7 +468,7 @@ function renderScoreTable() {
   });
 
   table.innerHTML = `
-    <tr><th>שחקן</th><th>ניחושים נכונים</th></tr>
+    <tr><th>שמות</th><th>ניחושים נכונים</th></tr>
     ${PLAYERS_ORDER.map(p => `<tr><td>${p}</td><td>${scores[p]}</td></tr>`).join("")}
   `;
 }
