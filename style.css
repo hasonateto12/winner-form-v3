@@ -193,28 +193,21 @@ button:disabled{
   box-shadow: var(--shadow);
 }
 
-/* ============================
-   TABLES (NORMAL LOOK)
-   - no gradients
-   - normal font
-   ============================ */
-table{
-  border-collapse: collapse;
-  width: 100%;
-  background: var(--card);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: var(--shadow);
+/* ===== TABLES: SHARP CORNERS (NO ROUNDING) ===== */
+
+table,
+#totalsTable {
+  border-radius: 0 !important;
+  overflow: visible !important;
+  box-shadow: none !important;
 }
 
-th, td{
-  border: 1px solid rgba(0,0,0,0.65);
-  padding: 8px 10px;
-  text-align: center;
-  color: var(--text);
-  background: var(--card);
-  font-weight: 400; /* רגיל */
+/* גם לתאים עצמם */
+th,
+td {
+  border-radius: 0 !important;
 }
+
 
 body[data-theme="dark"] th,
 body[data-theme="dark"] td{
