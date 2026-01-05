@@ -94,7 +94,6 @@ async function initExpert() {
   const btnStopGuess  = document.getElementById("btnStopGuess");
   const guessStatus   = document.getElementById("guessStatus");
 
-  // שדות זמן (קיימים רק במומחה)
   const guessAmountEl = document.getElementById("guessAmount");
   const guessUnitEl   = document.getElementById("guessUnit");
 
@@ -153,7 +152,6 @@ async function initExpert() {
     btnCopyPlayers.addEventListener("click", () => copyText(playersUrl));
   }
 
-  // מאזין למסמך הטופס
   onSnapshot(formRef(), async (s) => {
     if (!s.exists()) return;
     const d = s.data();
@@ -167,9 +165,7 @@ async function initExpert() {
     adminHash = d.adminHash || adminHash;
 
     await loadAllGuesses();
-    renderExpertTable();
-    renderScoreTable();
-
+    renderExpertTable(); // ✅ כולל שורת סה״כ בתוך הטבלה
     renderExpertGuessStatus(guessStatus);
     startExpertTicker(guessStatus);
   });
@@ -193,31 +189,26 @@ async function initExpert() {
     form.reset();
   });
 
-  // מצב חישוב נקודות
+  // מצב חישוב
   btnMode.addEventListener("click", async () => {
     if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
     resultMode = !resultMode;
     btnMode.textContent = resultMode ? "מצב חישוב נקודות (פעיל)" : "מצב חישוב נקודות (כבוי)";
   });
 
-  // === פונקציה: זמן מהטופס (דקות/שעות/ימים) ===
   function getDurationMsFromInputs() {
     const amount = Number(guessAmountEl?.value);
     const unit = guessUnitEl?.value || "hours";
-
     if (!Number.isFinite(amount) || amount <= 0) return null;
-
     if (unit === "minutes") return amount * 60 * 1000;
     if (unit === "hours")   return amount * 60 * 60 * 1000;
     if (unit === "days")    return amount * 24 * 60 * 60 * 1000;
-
     return null;
   }
 
-  // התחלת טיימר (לפי זמן שהמומחה בוחר)
+  // התחלת טיימר
   btnStartGuess.addEventListener("click", async () => {
     if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
-
     const durationMs = getDurationMsFromInputs();
     if (!durationMs) return alert("משך זמן לא תקין. בחר מספר גדול מ-0.");
 
@@ -231,7 +222,7 @@ async function initExpert() {
     });
   });
 
-  // עצירת טיימר עכשיו
+  // עצירה מוקדמת
   btnStopGuess.addEventListener("click", async () => {
     if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
     await updateDoc(formRef(), {
@@ -240,7 +231,7 @@ async function initExpert() {
     });
   });
 
-  // מחיקת משחק לפי מספר שורה
+  // מחיקת משחק
   btnDelete.addEventListener("click", async () => {
     if (!(await isAdminOk())) return alert("אין הרשאה (קישור מומחה בלבד)");
     const n = Number(document.getElementById("deleteIndex").value);
@@ -354,7 +345,7 @@ function startExpertTicker(el) {
   expertTimerInterval = setInterval(() => renderExpertGuessStatus(el), 1000);
 }
 
-// ===== טבלה מומחה: rowspan ליום+ליגה (ברצף בלבד) =====
+// ===== טבלת מומחה: rowspan ליום+ליגה + שורת סה״כ בסוף =====
 function renderExpertTable() {
   const table = document.getElementById("mainTable");
   if (!table) return;
@@ -363,10 +354,10 @@ function renderExpertTable() {
   const header = document.createElement("tr");
   header.innerHTML = `
     <th>#</th>
-    <th>יום המשחק</th>
+    <th>יום</th>
     <th>ליגה</th>
-    <th>משחק בית</th>
-    <th>משחק חוץ</th>
+    <th>בית</th>
+    <th>חוץ</th>
     ${PLAYERS_ORDER.map(p => `<th>${p}</th>`).join("")}
   `;
   table.appendChild(header);
@@ -440,6 +431,35 @@ function renderExpertTable() {
 
     table.appendChild(tr);
   }
+
+  // ===== שורת סה״כ (בלי שמות) =====
+  const totals = {};
+  PLAYERS_ORDER.forEach(p => totals[p] = 0);
+
+  Object.keys(results).forEach(matchId => {
+    PLAYERS_ORDER.forEach(p => {
+      if (results?.[matchId]?.[p]) totals[p]++;
+    });
+  });
+
+  const totalRow = document.createElement("tr");
+
+  // תא "סה״כ" – ממלא את 5 העמודות הראשונות (# יום ליגה בית חוץ)
+  const tdLabel = document.createElement("td");
+  tdLabel.colSpan = 5;
+  tdLabel.textContent = "סה״כ";
+  tdLabel.style.fontWeight = "bold";
+  totalRow.appendChild(tdLabel);
+
+  // המספרים תחת כל שחקן
+  PLAYERS_ORDER.forEach(p => {
+    const td = document.createElement("td");
+    td.textContent = String(totals[p] || 0);
+    td.style.fontWeight = "bold";
+    totalRow.appendChild(td);
+  });
+
+  table.appendChild(totalRow);
 }
 
 async function toggleGreen(matchId, player) {
@@ -451,26 +471,6 @@ async function toggleGreen(matchId, player) {
   else results[matchId][player] = true;
 
   await updateDoc(formRef(), { results });
-}
-
-function renderScoreTable() {
-  const table = document.getElementById("scoreTable");
-  if (!table) return;
-
-  const results = formData.results || {};
-  const scores = {};
-  PLAYERS_ORDER.forEach(p => scores[p] = 0);
-
-  Object.keys(results).forEach(matchId => {
-    PLAYERS_ORDER.forEach(p => {
-      if (results?.[matchId]?.[p]) scores[p]++;
-    });
-  });
-
-  table.innerHTML = `
-    <tr><th>שמות</th><th>ניחושים נכונים</th></tr>
-    ${PLAYERS_ORDER.map(p => `<tr><td>${p}</td><td>${scores[p]}</td></tr>`).join("")}
-  `;
 }
 
 // ===================== PLAYER =====================
