@@ -33,3 +33,40 @@ th, td {
   color: #444;
   font-size: 13px;
 }
+
+#totalsWrap {
+  margin-top: 12px;
+}
+
+#totalsTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+#totalsTable td {
+  border: 2px solid black;
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+}
+
+#totalsTable td.label {
+  text-align: right;
+  white-space: nowrap;
+}
+
+#totalsTable td.winner {
+  background: #00c853;
+}
+
+#totalsTable td.winner .tag {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 2px 8px;
+  border: 1px solid #000;
+  border-radius: 10px;
+  font-size: 12px;
+  background: rgba(255,255,255,0.65);
+}
+

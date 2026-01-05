@@ -165,7 +165,9 @@ async function initExpert() {
     adminHash = d.adminHash || adminHash;
 
     await loadAllGuesses();
-    renderExpertTable(); // ✅ כולל שורת סה״כ בתוך הטבלה
+    renderExpertTable();     // טבלה ראשית
+    renderTotalsOutside();   // ✅ שורת סה״כ מחוץ לטבלה + WINNER
+
     renderExpertGuessStatus(guessStatus);
     startExpertTicker(guessStatus);
   });
@@ -345,7 +347,7 @@ function startExpertTicker(el) {
   expertTimerInterval = setInterval(() => renderExpertGuessStatus(el), 1000);
 }
 
-// ===== טבלת מומחה: rowspan ליום+ליגה + שורת סה״כ בסוף =====
+// ===== טבלה מומחה: rowspan ליום+ליגה (ברצף) =====
 function renderExpertTable() {
   const table = document.getElementById("mainTable");
   if (!table) return;
@@ -354,10 +356,10 @@ function renderExpertTable() {
   const header = document.createElement("tr");
   header.innerHTML = `
     <th>#</th>
-    <th>יום</th>
+    <th>יום המשחק</th>
     <th>ליגה</th>
-    <th>בית</th>
-    <th>חוץ</th>
+    <th>קבוצת בית</th>
+    <th>קבוצת חוץ</th>
     ${PLAYERS_ORDER.map(p => `<th>${p}</th>`).join("")}
   `;
   table.appendChild(header);
@@ -431,35 +433,6 @@ function renderExpertTable() {
 
     table.appendChild(tr);
   }
-
-  // ===== שורת סה״כ (בלי שמות) =====
-  const totals = {};
-  PLAYERS_ORDER.forEach(p => totals[p] = 0);
-
-  Object.keys(results).forEach(matchId => {
-    PLAYERS_ORDER.forEach(p => {
-      if (results?.[matchId]?.[p]) totals[p]++;
-    });
-  });
-
-  const totalRow = document.createElement("tr");
-
-  // תא "סה״כ" – ממלא את 5 העמודות הראשונות (# יום ליגה בית חוץ)
-  const tdLabel = document.createElement("td");
-  tdLabel.colSpan = 5;
-  tdLabel.textContent = "סה״כ";
-  tdLabel.style.fontWeight = "bold";
-  totalRow.appendChild(tdLabel);
-
-  // המספרים תחת כל שחקן
-  PLAYERS_ORDER.forEach(p => {
-    const td = document.createElement("td");
-    td.textContent = String(totals[p] || 0);
-    td.style.fontWeight = "bold";
-    totalRow.appendChild(td);
-  });
-
-  table.appendChild(totalRow);
 }
 
 async function toggleGreen(matchId, player) {
@@ -471,6 +444,53 @@ async function toggleGreen(matchId, player) {
   else results[matchId][player] = true;
 
   await updateDoc(formRef(), { results });
+}
+
+// ✅ שורת סה״כ מחוץ לטבלה + WINNER (מי שהכי גבוה)
+function renderTotalsOutside() {
+  const t = document.getElementById("totalsTable");
+  if (!t) return;
+
+  const results = formData.results || {};
+  const totals = {};
+  PLAYERS_ORDER.forEach(p => totals[p] = 0);
+
+  Object.keys(results).forEach(matchId => {
+    PLAYERS_ORDER.forEach(p => {
+      if (results?.[matchId]?.[p]) totals[p]++;
+    });
+  });
+
+  const values = PLAYERS_ORDER.map(p => totals[p] || 0);
+  const max = values.length ? Math.max(...values) : 0;
+
+  // בניית שורה אחת: מספרים (בלי שמות) + תא תיאור
+  const row = document.createElement("tr");
+
+  // תאים של השחקנים (בסדר העמודות הקיים)
+  PLAYERS_ORDER.forEach(p => {
+    const td = document.createElement("td");
+    const val = totals[p] || 0;
+
+    // WINNER: מי שמחזיק מקס (וגם max>0)
+    if (max > 0 && val === max) {
+      td.classList.add("winner");
+      td.innerHTML = `${val} <span class="tag">WINNER</span>`;
+    } else {
+      td.textContent = String(val);
+    }
+    row.appendChild(td);
+  });
+
+  // תא תיאור מצד ימין (RTL) כמו בתמונה
+  const label = document.createElement("td");
+  label.className = "label";
+  label.textContent = 'סה״כ ניחושים';
+  row.appendChild(label);
+
+  // הכותרת של הטבלה (כדי שיהיה מסגרת יפה)
+  t.innerHTML = "";
+  t.appendChild(row);
 }
 
 // ===================== PLAYER =====================
