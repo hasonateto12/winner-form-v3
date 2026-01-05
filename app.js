@@ -448,10 +448,12 @@ async function toggleGreen(matchId, player) {
 
 // ✅ שורת סה״כ מחוץ לטבלה + WINNER (מי שהכי גבוה)
 function renderTotalsOutside() {
-  const t = document.getElementById("totalsTable");
-  if (!t) return;
+  const totalsTable = document.getElementById("totalsTable");
+  if (!totalsTable) return;
 
   const results = formData.results || {};
+
+  // סופרים נקודות לכל שחקן
   const totals = {};
   PLAYERS_ORDER.forEach(p => totals[p] = 0);
 
@@ -464,34 +466,60 @@ function renderTotalsOutside() {
   const values = PLAYERS_ORDER.map(p => totals[p] || 0);
   const max = values.length ? Math.max(...values) : 0;
 
-  // בניית שורה אחת: מספרים (בלי שמות) + תא תיאור
-  const row = document.createElement("tr");
+  // ✅ בונים שורה עם אותו מספר עמודות כמו הטבלה הראשית:
+  // (#, יום, ליגה, בית, חוץ) = 5 עמודות "ימניות"
+  // + עמודות שחקנים = PLAYERS_ORDER.length
+  totalsTable.innerHTML = "";
+  const tr = document.createElement("tr");
 
-  // תאים של השחקנים (בסדר העמודות הקיים)
+  // תא כותרת בצד ימין (כמו אזור ליגה/יום/...) – תופס 5 עמודות
+  const labelTd = document.createElement("td");
+  labelTd.className = "totals-label";
+  labelTd.colSpan = 5;
+  labelTd.textContent = "סה״כ ניחושים";
+  tr.appendChild(labelTd);
+
+  // עכשיו תאים של שחקנים (בדיוק מתחת לעמודות השמות)
   PLAYERS_ORDER.forEach(p => {
     const td = document.createElement("td");
     const val = totals[p] || 0;
 
-    // WINNER: מי שמחזיק מקס (וגם max>0)
     if (max > 0 && val === max) {
       td.classList.add("winner");
       td.innerHTML = `${val} <span class="tag">WINNER</span>`;
     } else {
       td.textContent = String(val);
     }
-    row.appendChild(td);
+
+    tr.appendChild(td);
   });
 
-  // תא תיאור מצד ימין (RTL) כמו בתמונה
-  const label = document.createElement("td");
-  label.className = "label";
-  label.textContent = 'סה״כ ניחושים';
-  row.appendChild(label);
+  totalsTable.appendChild(tr);
 
-  // הכותרת של הטבלה (כדי שיהיה מסגרת יפה)
-  t.innerHTML = "";
-  t.appendChild(row);
+  // ✅ חשוב: כדי שהרוחב יתאים ממש לטבלה הראשית,
+  // נעתיק "רוחבי עמודות" מה-header של הטבלה הראשית אם קיימים.
+  syncTotalsColumnWidths();
 }
+
+function syncTotalsColumnWidths() {
+  const main = document.getElementById("mainTable");
+  const totals = document.getElementById("totalsTable");
+  if (!main || !totals) return;
+
+  const mainHeader = main.querySelector("tr");
+  const totalRow = totals.querySelector("tr");
+  if (!mainHeader || !totalRow) return;
+
+  // מאפסים קודם
+  totals.style.tableLayout = "fixed";
+
+  // אם יש לנו th עם widths בפועל, נשתמש בהם.
+  // שים לב: totalsRow מתחיל עם td colspan=5, אז אין לנו td לכל אחת מה-5.
+  // לכן אנחנו רק מיישרים את רוחב הטבלה על ידי זה שהטבלה totals היא 100%,
+  // וה-colspan=5 "יאכל" בדיוק את רוחב 5 העמודות הראשונות.
+  // זה עובד טוב כששתי הטבלאות width:100% ו-table-layout:fixed.
+}
+
 
 // ===================== PLAYER =====================
 async function initPlayer() {
