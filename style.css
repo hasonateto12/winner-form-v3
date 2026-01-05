@@ -203,8 +203,8 @@ table{
   width: 100%;
   background: var(--card);
   border-radius: 12px;
-  overflow: hidden;
- 
+  overflow: visible;
+  box-shadow: var(--shadow);
 }
 
 th, td{
