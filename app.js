@@ -70,7 +70,15 @@ function getPlayersOrder() {
    Helpers
    ========================= */
 function qs() { return new URLSearchParams(location.search); }
-function getBaseUrl() { return location.origin + location.pathname.replace(/\/[^\/]*$/, ""); }
+function getBaseUrl() {
+  // works for GitHub Pages and normal hosting
+  const pathParts = location.pathname.split("/").filter(Boolean);
+  // if running on github.io -> first part is repo name
+  const isGithubPages = location.hostname.endsWith("github.io");
+  const repoPart = isGithubPages && pathParts.length ? `/${pathParts[0]}` : "";
+  return `${location.origin}${repoPart}`;
+}
+
 
 function makeId(len = 8) {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
