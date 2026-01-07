@@ -1,6 +1,6 @@
 /* ============================
    style.css (FULL) — PRO UI + Toast + Dark Mode
-   + Tables NORMAL (no gradients, normal font)
+   + Tables NORMAL + Sharp corners (no rounded)
    ============================ */
 
 :root{
@@ -64,9 +64,7 @@ hr{
   opacity: 0.9;
 }
 
-/* ============================
-   CONTROL CARDS
-   ============================ */
+/* CONTROL CARDS */
 .controls{
   display: flex;
   flex-wrap: wrap;
@@ -74,14 +72,12 @@ hr{
   align-items: center;
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
   padding: 14px;
   box-shadow: var(--shadow);
+  border-radius: var(--radius);
 }
 
-/* ============================
-   INPUTS
-   ============================ */
+/* INPUTS */
 input, select{
   appearance: none;
   border: 1px solid var(--line);
@@ -109,9 +105,7 @@ input:disabled, select:disabled{
   background: rgba(148,163,184,0.08);
 }
 
-/* ============================
-   BUTTONS
-   ============================ */
+/* BUTTONS */
 button{
   border: 0;
   border-radius: 12px;
@@ -148,11 +142,11 @@ button:disabled{
 }
 
 /* special buttons by id */
-#btnNew, #btnCopyExpert, #btnCopyPlayers, #btnStartGuess, #btnSave{
+#btnNew, #btnCopyExpert, #btnCopyPlayers, #btnStartGuess, #btnSave, #btnAddPlayer, #btnCopyImage{
   background: linear-gradient(180deg, var(--primary), var(--primary2));
   color: white;
 }
-#btnNew:hover, #btnCopyExpert:hover, #btnCopyPlayers:hover, #btnStartGuess:hover, #btnSave:hover{
+#btnNew:hover, #btnCopyExpert:hover, #btnCopyPlayers:hover, #btnStartGuess:hover, #btnSave:hover, #btnAddPlayer:hover, #btnCopyImage:hover{
   box-shadow: 0 14px 30px rgba(37,99,235,0.25);
 }
 
@@ -162,11 +156,11 @@ button:disabled{
 }
 #btnMode:hover{ box-shadow: 0 14px 30px rgba(22,163,74,0.22); }
 
-#btnClear, #btnDelete, #btnStopGuess{
+#btnClear, #btnDelete, #btnStopGuess, #btnDeletePlayer{
   background: linear-gradient(180deg, var(--danger), var(--danger2));
   color: white;
 }
-#btnClear:hover, #btnDelete:hover, #btnStopGuess:hover{
+#btnClear:hover, #btnDelete:hover, #btnStopGuess:hover, #btnDeletePlayer:hover{
   box-shadow: 0 14px 30px rgba(239,68,68,0.18);
 }
 
@@ -178,9 +172,7 @@ button:disabled{
   box-shadow: 0 14px 30px rgba(99,102,241,0.20);
 }
 
-/* ============================
-   MATCH FORM AS GRID
-   ============================ */
+/* MATCH FORM AS GRID */
 #matchForm{
   display: grid;
   grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;
@@ -188,23 +180,19 @@ button:disabled{
   align-items: center;
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
   padding: 14px;
   box-shadow: var(--shadow);
+  border-radius: var(--radius);
 }
 
-/* ============================
-   TABLES (NORMAL LOOK)
-   - no gradients
-   - normal font
-   ============================ */
+/* TABLES (NORMAL LOOK) - SHARP corners */
 table{
   border-collapse: collapse;
   width: 100%;
   background: var(--card);
-  border-radius: 12px;
+  border-radius: 0;
   overflow: visible;
-  box-shadow: var(--shadow);
+  box-shadow: none;
 }
 
 th, td{
@@ -213,7 +201,8 @@ th, td{
   text-align: center;
   color: var(--text);
   background: var(--card);
-  font-weight: 400; /* רגיל */
+  font-weight: 400;
+  border-radius: 0;
 }
 
 body[data-theme="dark"] th,
@@ -221,24 +210,11 @@ body[data-theme="dark"] td{
   border-color: rgba(148,163,184,0.45);
 }
 
-/* headers: plain background, slightly bold */
-th{
-  font-weight: 700;
-}
+th{ font-weight: 700; }
 
-/* ============================
-   Totals table (separate, aligned)
-   ============================ */
-#totalsWrap{
-  margin-top: 8px;
-}
-
-#totalsTable{
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--card);
-}
-
+/* Totals table */
+#totalsWrap{ margin-top: 8px; }
+#totalsTable{ width: 100%; border-collapse: collapse; background: var(--card); }
 #totalsTable td{
   border: 2px solid rgba(0,0,0,0.75);
   padding: 10px;
@@ -246,22 +222,18 @@ th{
   color: var(--text);
   font-weight: 700;
 }
-
 body[data-theme="dark"] #totalsTable td{
   border-color: rgba(148,163,184,0.55);
 }
-
 #totalsTable td.totals-label{
   text-align: right;
   padding-right: 14px;
   white-space: nowrap;
 }
-
 #totalsTable td.winner{
   background: #00c853;
   color: #051b10;
 }
-
 #totalsTable td.winner .tag{
   display: inline-block;
   margin-right: 8px;
@@ -272,9 +244,7 @@ body[data-theme="dark"] #totalsTable td{
   background: rgba(255,255,255,0.70);
 }
 
-/* ============================
-   TOAST
-   ============================ */
+/* TOAST */
 .toast-host{
   position: fixed;
   left: 50%;
@@ -308,10 +278,7 @@ body[data-theme="dark"] .toast{
   background: rgba(15,23,42,0.92);
 }
 
-.toast.show{
-  opacity: 1;
-  transform: translateY(0px);
-}
+.toast.show{ opacity: 1; transform: translateY(0px); }
 
 .toast-dot{
   width: 10px;
@@ -326,18 +293,17 @@ body[data-theme="dark"] .toast{
 .toast-warning .toast-dot{ background: var(--warn); }
 .toast-error .toast-dot{ background: var(--danger); }
 
-.toast-text{
-  font-weight: 800;
+.toast-text{ font-weight: 800; }
+
+/* RESPONSIVE */
+@media (max-width: 900px){
+  #matchForm{ grid-template-columns: 1fr 1fr; }
+  #matchForm button{ grid-column: 1 / -1; }
 }
 
-/* ============================
-   RESPONSIVE
-   ============================ */
-@media (max-width: 900px){
-  #matchForm{
-    grid-template-columns: 1fr 1fr;
-  }
-  #matchForm button{
-    grid-column: 1 / -1;
-  }
+/* ===== CAPTURE AREA ===== */
+/* מבטיח צילום נקי ויפה */
+#captureArea{
+  background: #fff;
+  padding: 10px;
 }

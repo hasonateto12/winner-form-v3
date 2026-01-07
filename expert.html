@@ -14,6 +14,9 @@
   <button id="btnNew" type="button">✨ צור טופס חדש</button>
   <button id="btnCopyExpert" type="button" disabled>🔗 העתק קישור מומחה</button>
   <button id="btnCopyPlayers" type="button" disabled>🔗 העתק קישור שחקנים</button>
+
+  <button id="btnCopyImage" type="button" disabled>📋 העתק תמונה לוואטסאפ</button>
+
   <button id="themeToggle" type="button">🌙 מצב כהה</button>
 </div>
 
@@ -38,15 +41,21 @@
 
 <hr/>
 
-<h3>טיימר ניחושים</h3>
+<h3>ניהול שחקנים</h3>
 <div class="controls">
-  <label class="muted">משך זמן:</label>
-  <input id="guessAmount" type="number" min="1" value="24" style="width:90px" />
-  <select id="guessUnit">
-    <option value="minutes">דקות</option>
-    <option value="hours" selected>שעות</option>
-    <option value="days">ימים</option>
-  </select>
+  <input id="newPlayerName" placeholder="שם שחקן חדש" />
+  <button id="btnAddPlayer" type="button">➕ הוסף שחקן</button>
+
+  <input id="deletePlayerName" placeholder="שם למחיקה" />
+  <button id="btnDeletePlayer" type="button">🧹 מחק שחקן</button>
+</div>
+
+<hr/>
+
+<h3>טיימר ניחושים (תאריך ושעה אמיתיים)</h3>
+<div class="controls">
+  <label class="muted">ניחושים עד:</label>
+  <input id="guessEnd" type="datetime-local" />
 
   <button id="btnStartGuess" type="button" disabled>🕒 התחל זמן ניחושים</button>
   <button id="btnStopGuess" type="button" disabled>⏹ עצור ניחושים עכשיו</button>
@@ -56,15 +65,20 @@
 <hr/>
 
 <h2>טבלת משחקים + ניחושים</h2>
-<table id="mainTable"></table>
 
-<!-- שורת סה"כ נפרדת (לא מחוברת לטבלה) אבל מתואמת רוחב 1:1 -->
-<div id="totalsWrap">
-  <table id="totalsTable"></table>
+<!-- אזור צילום/העתקה -->
+<div id="captureArea">
+  <table id="mainTable"></table>
+
+  <div id="totalsWrap">
+    <table id="totalsTable"></table>
+  </div>
 </div>
 
-<!-- Toast host -->
 <div id="toastHost" class="toast-host"></div>
+
+<!-- צילום/העתקה -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script type="module" src="app.js"></script>
 </body>
