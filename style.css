@@ -307,3 +307,17 @@ body[data-theme="dark"] .toast{
   background: #fff;
   padding: 10px;
 }
+
+
+
+/* ===== Table spacing like printed form ===== */
+.table-wrap {
+  width: 100%;
+  padding-left: 80px;   /* השטח הריק בצד שמאל */
+  box-sizing: border-box;
+}
+
+/* הטבלה עצמה לא תתפרס על כל המסך */
+.table-wrap table {
+  width: calc(100% - 0px);
+}
