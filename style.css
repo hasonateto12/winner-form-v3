@@ -1,323 +1,269 @@
-/* ============================
-   style.css (FULL) — PRO UI + Toast + Dark Mode
-   + Tables NORMAL + Sharp corners (no rounded)
-   ============================ */
-
+/* ===== Base ===== */
 :root{
-  --bg: #f6f7fb;
-  --card: #ffffff;
-  --text: #0f172a;
-  --muted: #475569;
-  --line: #e2e8f0;
+  --bg:#f6f7fb;
+  --card:#ffffff;
+  --text:#111;
+  --muted:#666;
+  --line:#1a1a1a;
 
-  --primary: #2563eb;
-  --primary2: #1d4ed8;
+  --primary:#2563eb;
+  --success:#16a34a;
+  --danger:#dc2626;
+  --ghost:#f3f4f6;
 
-  --danger: #ef4444;
-  --danger2: #dc2626;
-
-  --success: #16a34a;
-  --success2: #15803d;
-
-  --warn: #f59e0b;
-
-  --shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
-  --shadow2: 0 6px 18px rgba(2, 6, 23, 0.10);
-
-  --radius: 14px;
+  --shadow:0 8px 30px rgba(0,0,0,.07);
 }
 
-/* DARK MODE */
 body[data-theme="dark"]{
-  --bg: #0b1220;
-  --card: #0f172a;
-  --text: #e5e7eb;
-  --muted: #94a3b8;
-  --line: rgba(148,163,184,0.22);
+  --bg:#0f172a;
+  --card:#111827;
+  --text:#f3f4f6;
+  --muted:#9ca3af;
 
-  --shadow: 0 14px 40px rgba(0,0,0,0.35);
-  --shadow2: 0 10px 22px rgba(0,0,0,0.35);
+  --line:#e5e7eb;
+  --ghost:#1f2937;
+
+  --shadow:0 10px 35px rgba(0,0,0,.25);
 }
 
+*{box-sizing:border-box}
 body{
-  font-family: Arial, sans-serif;
-  padding: 20px;
-  color: var(--text);
-
-  background:
-    radial-gradient(1200px 500px at 80% -10%, rgba(37,99,235,0.12), transparent 60%),
-    radial-gradient(900px 400px at 20% 0%, rgba(16,185,129,0.10), transparent 55%),
-    var(--bg);
+  margin:0;
+  font-family: Arial, Helvetica, sans-serif;
+  background:var(--bg);
+  color:var(--text);
 }
 
-h2,h3{
-  letter-spacing: 0.2px;
-  margin: 10px 0 14px;
+/* ===== Header ===== */
+header{
+  padding:18px 16px;
+}
+.header-inner{
+  max-width:1200px;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+h1{
+  margin:0;
+  font-size:20px;
 }
 
-.muted{ color: var(--muted); }
+/* ===== Card layout ===== */
+.card{
+  max-width:1200px;
+  margin:12px auto;
+  background:var(--card);
+  box-shadow:var(--shadow);
+  border:1px solid rgba(0,0,0,.08);
+  padding:14px;
+}
+body[data-theme="dark"] .card{
+  border:1px solid rgba(255,255,255,.08);
+}
+.card-title{
+  font-weight:700;
+  margin-bottom:10px;
+}
+.card-body{}
 
-hr{
-  border: none;
-  border-top: 1px solid var(--line);
-  margin: 18px 0;
-  opacity: 0.9;
+/* ===== Controls ===== */
+.btn-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+}
+.inline{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.form-grid{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(160px, 1fr)) auto;
+  gap:10px;
+  align-items:center;
+}
+@media (max-width:900px){
+  .form-grid{
+    grid-template-columns:1fr 1fr;
+  }
 }
 
-/* CONTROL CARDS */
-.controls{
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  background: var(--card);
-  border: 1px solid var(--line);
-  padding: 14px;
-  box-shadow: var(--shadow);
-  border-radius: var(--radius);
-}
-
-/* INPUTS */
+/* ===== Inputs ===== */
 input, select{
-  appearance: none;
-  border: 1px solid var(--line);
-  background: var(--card);
-  color: var(--text);
-  border-radius: 12px;
-  padding: 10px 12px;
-  outline: none;
-  font-size: 14px;
-  min-height: 40px;
-  transition: box-shadow .2s ease, border-color .2s ease;
-  box-shadow: 0 1px 0 rgba(2,6,23,0.03);
+  padding:10px 12px;
+  border:1px solid rgba(0,0,0,.2);
+  background:transparent;
+  color:var(--text);
+  font-size:14px;
+}
+body[data-theme="dark"] input,
+body[data-theme="dark"] select{
+  border:1px solid rgba(255,255,255,.2);
 }
 
-input::placeholder{ color: #94a3b8; }
-
-input:focus, select:focus{
-  border-color: rgba(37,99,235,0.55);
-  box-shadow: 0 0 0 4px rgba(37,99,235,0.18);
+/* ===== Buttons ===== */
+.btn{
+  padding:10px 14px;
+  border:1px solid transparent;
+  cursor:pointer;
+  font-weight:700;
+  font-size:14px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  user-select:none;
+}
+.btn:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+.btn-primary{
+  background:var(--primary);
+  color:#fff;
+}
+.btn-success{
+  background:var(--success);
+  color:#fff;
+}
+.btn-danger{
+  background:var(--danger);
+  color:#fff;
+}
+.btn-outline{
+  background:transparent;
+  border-color:rgba(0,0,0,.25);
+  color:var(--text);
+}
+body[data-theme="dark"] .btn-outline{
+  border-color:rgba(255,255,255,.25);
+}
+.btn-ghost{
+  background:var(--ghost);
+  color:var(--text);
+  border-color:rgba(0,0,0,.12);
+}
+body[data-theme="dark"] .btn-ghost{
+  border-color:rgba(255,255,255,.12);
 }
 
-input:disabled, select:disabled{
-  opacity: .55;
-  cursor: not-allowed;
-  background: rgba(148,163,184,0.08);
+.muted{color:var(--muted)}
+
+/* ===== Table area (must look like form) ===== */
+.capture-title{
+  max-width:1200px;
+  margin:18px auto 10px auto;
+  font-size:26px;
 }
 
-/* BUTTONS */
-button{
-  border: 0;
-  border-radius: 12px;
-  padding: 10px 14px;
-  min-height: 40px;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: transform .08s ease, box-shadow .2s ease, filter .2s ease;
-  box-shadow: var(--shadow2);
-  background: #ffffff;
-  color: var(--text);
+/* רווח לבן בצד שמאל כמו הטופס */
+.table-wrap{
+  width:100%;
+  padding-left:120px; /* שנה ל-80/160 לפי מה שאתה רוצה */
+  box-sizing:border-box;
 }
 
-body[data-theme="dark"] button{
-  background: rgba(30,41,59,1);
-  color: var(--text);
-}
-
-button:hover{
-  filter: brightness(1.03);
-  transform: translateY(-1px);
-}
-
-button:active{
-  transform: translateY(0px) scale(0.99);
-}
-
-button:disabled{
-  opacity: .45;
-  cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
-}
-
-/* special buttons by id */
-#btnNew, #btnCopyExpert, #btnCopyPlayers, #btnStartGuess, #btnSave, #btnAddPlayer, #btnCopyImage{
-  background: linear-gradient(180deg, var(--primary), var(--primary2));
-  color: white;
-}
-#btnNew:hover, #btnCopyExpert:hover, #btnCopyPlayers:hover, #btnStartGuess:hover, #btnSave:hover, #btnAddPlayer:hover, #btnCopyImage:hover{
-  box-shadow: 0 14px 30px rgba(37,99,235,0.25);
-}
-
-#btnMode{
-  background: linear-gradient(180deg, var(--success), var(--success2));
-  color: white;
-}
-#btnMode:hover{ box-shadow: 0 14px 30px rgba(22,163,74,0.22); }
-
-#btnClear, #btnDelete, #btnStopGuess, #btnDeletePlayer{
-  background: linear-gradient(180deg, var(--danger), var(--danger2));
-  color: white;
-}
-#btnClear:hover, #btnDelete:hover, #btnStopGuess:hover, #btnDeletePlayer:hover{
-  box-shadow: 0 14px 30px rgba(239,68,68,0.18);
-}
-
-#themeToggle{
-  background: linear-gradient(180deg, rgba(99,102,241,1), rgba(79,70,229,1));
-  color: white;
-}
-#themeToggle:hover{
-  box-shadow: 0 14px 30px rgba(99,102,241,0.20);
-}
-
-/* MATCH FORM AS GRID */
-#matchForm{
-  display: grid;
-  grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;
-  gap: 10px;
-  align-items: center;
-  background: var(--card);
-  border: 1px solid var(--line);
-  padding: 14px;
-  box-shadow: var(--shadow);
-  border-radius: var(--radius);
-}
-
-/* TABLES (NORMAL LOOK) - SHARP corners */
+/* טבלה “רגילה” בלי פינות עגולות */
 table{
-  border-collapse: collapse;
-  width: 100%;
-  background: var(--card);
-  border-radius: 0;
-  overflow: visible;
-  box-shadow: none;
+  width:100%;
+  border-collapse:collapse;
+  background:#fff;
+  color:#111;
+  border-radius:0 !important;
 }
-
 th, td{
-  border: 1px solid rgba(0,0,0,0.65);
-  padding: 8px 10px;
-  text-align: center;
-  color: var(--text);
-  background: var(--card);
-  font-weight: 400;
-  border-radius: 0;
+  border:1px solid #000;
+  padding:8px 10px;
+  text-align:center;
+  vertical-align:middle;
+  border-radius:0 !important;
+  font-size:14px;
+}
+th{
+  font-weight:700;
+  background:#fff;
 }
 
-body[data-theme="dark"] th,
-body[data-theme="dark"] td{
-  border-color: rgba(148,163,184,0.45);
-}
-
-th{ font-weight: 700; }
-
-/* Totals table */
-#totalsWrap{ margin-top: 8px; }
-#totalsTable{ width: 100%; border-collapse: collapse; background: var(--card); }
+/* totals row style */
 #totalsTable td{
-  border: 2px solid rgba(0,0,0,0.75);
-  padding: 10px;
-  background: var(--card);
-  color: var(--text);
-  font-weight: 700;
+  font-weight:700;
 }
-body[data-theme="dark"] #totalsTable td{
-  border-color: rgba(148,163,184,0.55);
-}
-#totalsTable td.totals-label{
-  text-align: right;
-  padding-right: 14px;
-  white-space: nowrap;
+#totalsTable .totals-label{
+  text-align:right;
+  padding-right:14px;
 }
 #totalsTable td.winner{
-  background: #00c853;
-  color: #051b10;
+  background:#17c964;
+  color:#000;
 }
-#totalsTable td.winner .tag{
-  display: inline-block;
-  margin-right: 8px;
-  padding: 2px 8px;
-  border: 1px solid #000;
-  border-radius: 999px;
-  font-size: 12px;
-  background: rgba(255,255,255,0.70);
+#totalsTable .tag{
+  display:inline-block;
+  margin-right:8px;
+  padding:2px 8px;
+  border:1px solid #000;
+  border-radius:999px;
+  font-size:12px;
+  background:#fff;
 }
 
-/* TOAST */
+/* ===== Capture Mode: hide everything except captureArea ===== */
+body.capture-mode{
+  background:#fff !important;
+}
+body.capture-mode .no-capture,
+body.capture-mode header,
+body.capture-mode .card,
+body.capture-mode form{
+  display:none !important;
+}
+body.capture-mode #captureArea{
+  display:block !important;
+}
+
+/* ===== Toast ===== */
 .toast-host{
-  position: fixed;
-  left: 50%;
-  bottom: 18px;
-  transform: translateX(-50%);
-  display: grid;
-  gap: 10px;
-  z-index: 9999;
-  pointer-events: none;
-  width: min(520px, calc(100% - 24px));
+  position:fixed;
+  left:14px;
+  bottom:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  z-index:9999;
 }
-
 .toast{
-  pointer-events: auto;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.95);
-  color: var(--text);
-  box-shadow: var(--shadow);
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity .18s ease, transform .18s ease;
-  backdrop-filter: blur(6px);
+  min-width:220px;
+  max-width:320px;
+  background:var(--card);
+  color:var(--text);
+  border:1px solid rgba(0,0,0,.15);
+  box-shadow:var(--shadow);
+  padding:10px 12px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  opacity:0;
+  transform:translateY(10px);
+  transition:all .22s ease;
 }
-
 body[data-theme="dark"] .toast{
-  background: rgba(15,23,42,0.92);
+  border:1px solid rgba(255,255,255,.15);
 }
-
-.toast.show{ opacity: 1; transform: translateY(0px); }
-
+.toast.show{
+  opacity:1;
+  transform:translateY(0);
+}
 .toast-dot{
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--primary);
-  flex: 0 0 auto;
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:#999;
 }
-
-.toast-info .toast-dot{ background: var(--primary); }
-.toast-success .toast-dot{ background: var(--success); }
-.toast-warning .toast-dot{ background: var(--warn); }
-.toast-error .toast-dot{ background: var(--danger); }
-
-.toast-text{ font-weight: 800; }
-
-/* RESPONSIVE */
-@media (max-width: 900px){
-  #matchForm{ grid-template-columns: 1fr 1fr; }
-  #matchForm button{ grid-column: 1 / -1; }
-}
-
-/* ===== CAPTURE AREA ===== */
-/* מבטיח צילום נקי ויפה */
-#captureArea{
-  background: #fff;
-  padding: 10px;
-}
-
-
-
-/* ===== Table spacing like printed form ===== */
-.table-wrap {
-  width: 100%;
-  padding-left: 80px;   /* השטח הריק בצד שמאל */
-  box-sizing: border-box;
-}
-
-/* הטבלה עצמה לא תתפרס על כל המסך */
-.table-wrap table {
-  width: calc(100% - 0px);
-}
+.toast-info .toast-dot{background:#3b82f6}
+.toast-success .toast-dot{background:#22c55e}
+.toast-warning .toast-dot{background:#f59e0b}
+.toast-error .toast-dot{background:#ef4444}

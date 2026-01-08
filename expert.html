@@ -3,85 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>מומחה – טבלת משחקים</title>
+  <title>מומחה – Winner Form</title>
+
   <link rel="stylesheet" href="style.css" />
+
+  <!-- html2canvas לצילום -->
+  <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
 
-<h2>הזנת משחק</h2>
+<header class="no-capture">
+  <div class="header-inner">
+    <h1>Winner Form – מומחה</h1>
+    <div class="header-actions">
+      <button id="themeToggle" type="button" class="btn btn-ghost">🌙 מצב כהה</button>
+    </div>
+  </div>
+</header>
 
-<div class="controls">
-  <button id="btnNew" type="button">✨ צור טופס חדש</button>
-  <button id="btnCopyExpert" type="button" disabled>🔗 העתק קישור מומחה</button>
-  <button id="btnCopyPlayers" type="button" disabled>🔗 העתק קישור שחקנים</button>
+<!-- קישורים לשיתוף -->
+<section class="card no-capture">
+  <div class="card-title">🔗 קישורים לשיתוף</div>
+  <div class="card-body">
+    <div id="linkInfo" class="muted">לחץ “צור טופס חדש” כדי לקבל קישורים.</div>
 
-  <button id="btnCopyImage" type="button" disabled>📋 העתק תמונה לוואטסאפ</button>
+    <div class="btn-row">
+      <button id="btnNew" type="button" class="btn btn-primary">➕ צור טופס חדש</button>
+      <button id="btnCopyExpert" type="button" class="btn btn-outline" disabled>🔑 העתק קישור מומחה</button>
+      <button id="btnCopyPlayers" type="button" class="btn btn-outline" disabled>👥 העתק קישור שחקנים</button>
+      <button id="btnCopyImage" type="button" class="btn btn-success" disabled>📸 צילום/שיתוף לוואטסאפ</button>
+    </div>
+  </div>
+</section>
 
-  <button id="themeToggle" type="button">🌙 מצב כהה</button>
-</div>
+<!-- הוספת משחק -->
+<section class="card no-capture">
+  <div class="card-title">➕ הוספת משחק</div>
+  <div class="card-body">
+    <form id="matchForm" class="form-grid">
+      <input id="day" placeholder="יום המשחק" required />
+      <input id="league" placeholder="ליגה" required />
+      <input id="home" placeholder="קבוצת בית" required />
+      <input id="away" placeholder="קבוצת חוץ" required />
+      <button type="submit" class="btn btn-primary">הוסף משחק</button>
+    </form>
+  </div>
+</section>
 
-<div class="muted" id="linkInfo" style="margin-top:10px;"></div>
+<!-- טיימר ניחושים -->
+<section class="card no-capture">
+  <div class="card-title">🕒 טיימר ניחושים</div>
+  <div class="card-body">
+    <div class="timer-row">
+      <label class="muted">ניחושים עד:</label>
+      <input id="guessEnd" type="datetime-local" />
+      <button id="btnStartGuess" type="button" class="btn btn-primary" disabled>⏱ התחל זמן ניחושים</button>
+      <button id="btnStopGuess" type="button" class="btn btn-danger" disabled>⛔ עצור ניחושים עכשיו</button>
+    </div>
+    <div id="guessStatus" class="muted" style="margin-top:10px;">ניחושים עדיין לא התחילו.</div>
+  </div>
+</section>
 
-<hr/>
+<!-- ניהול שחקנים -->
+<section class="card no-capture">
+  <div class="card-title">👤 ניהול שחקנים</div>
+  <div class="card-body">
+    <div class="player-admin">
+      <div class="inline">
+        <input id="newPlayerName" placeholder="שם שחקן חדש" />
+        <button id="btnAddPlayer" type="button" class="btn btn-primary" disabled>➕ הוסף שחקן</button>
+      </div>
 
-<form id="matchForm">
-  <input id="day" placeholder="יום המשחק" required />
-  <input id="league" placeholder="ליגה" required />
-  <input id="home" placeholder="קבוצת בית" required />
-  <input id="away" placeholder="קבוצת חוץ" required />
-  <button type="submit">➕ הוסף משחק</button>
-</form>
+      <div class="inline">
+        <input id="deletePlayerName" placeholder="שם שחקן למחיקה" />
+        <button id="btnDeletePlayer" type="button" class="btn btn-danger" disabled>🗑 מחק שחקן</button>
+      </div>
 
-<div class="controls">
-  <input id="deleteIndex" type="number" placeholder="מספר שורה למחיקה" />
-  <button id="btnDelete" type="button">🧹 מחק משחק</button>
-  <button id="btnClear" type="button">🗑 נקה את כל הטבלה</button>
-  <button id="btnMode" type="button" disabled>✅ מצב חישוב נקודות (כבוי)</button>
-</div>
+      <div class="muted">* שחקנים חדשים נכנסים אחרי שמעון.</div>
+    </div>
+  </div>
+</section>
 
-<hr/>
+<!-- מחיקה וניקוי -->
+<section class="card no-capture">
+  <div class="card-title">🧹 מחיקות</div>
+  <div class="card-body">
+    <div class="btn-row">
+      <input id="deleteIndex" type="number" min="1" placeholder="מספר שורה למחיקה" />
+      <button id="btnDelete" type="button" class="btn btn-danger" disabled>🗑 מחק משחק</button>
+      <button id="btnClear" type="button" class="btn btn-danger" disabled>🧨 נקה את כל הטבלה</button>
+      <button id="btnMode" type="button" class="btn btn-outline" disabled>✅ מצב חישוב נקודות (כבוי)</button>
+    </div>
+    <div class="muted">במצב חישוב נקודות: לחץ על תא של שחקן כדי לסמן/לבטל ירוק.</div>
+  </div>
+</section>
 
-<h3>ניהול שחקנים</h3>
-<div class="controls">
-  <input id="newPlayerName" placeholder="שם שחקן חדש" />
-  <button id="btnAddPlayer" type="button">➕ הוסף שחקן</button>
+<!-- ===== האזור שמצטלם בדיוק כמו הטופס ===== -->
+<section id="captureArea" class="capture-area">
+  <h2 class="capture-title">טבלת משחקים + ניחושים</h2>
 
-  <input id="deletePlayerName" placeholder="שם למחיקה" />
-  <button id="btnDeletePlayer" type="button">🧹 מחק שחקן</button>
-</div>
+  <div class="table-wrap">
+    <table id="mainTable"></table>
+  </div>
 
-<hr/>
-
-<h3>טיימר ניחושים (תאריך ושעה אמיתיים)</h3>
-<div class="controls">
-  <label class="muted">ניחושים עד:</label>
-  <input id="guessEnd" type="datetime-local" />
-
-  <button id="btnStartGuess" type="button" disabled>🕒 התחל זמן ניחושים</button>
-  <button id="btnStopGuess" type="button" disabled>⏹ עצור ניחושים עכשיו</button>
-  <div class="muted" id="guessStatus"></div>
-</div>
-
-<hr/>
-
-<h2>טבלת משחקים + ניחושים</h2>
-
-<!-- אזור צילום/העתקה -->
-<div id="captureArea">
- <div class="table-wrap">
-  <table id="mainTable"></table>
-</div>
-
-
-  <div id="totalsWrap">
+  <div class="table-wrap totals-wrap">
     <table id="totalsTable"></table>
   </div>
-</div>
+</section>
 
-<div id="toastHost" class="toast-host"></div>
-
-<!-- צילום/העתקה -->
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<div id="toastHost" class="toast-host no-capture"></div>
 
 <script type="module" src="app.js"></script>
 </body>

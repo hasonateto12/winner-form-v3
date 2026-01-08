@@ -70,15 +70,14 @@ function getPlayersOrder() {
    Helpers
    ========================= */
 function qs() { return new URLSearchParams(location.search); }
+
 function getBaseUrl() {
   // works for GitHub Pages and normal hosting
   const pathParts = location.pathname.split("/").filter(Boolean);
-  // if running on github.io -> first part is repo name
   const isGithubPages = location.hostname.endsWith("github.io");
   const repoPart = isGithubPages && pathParts.length ? `/${pathParts[0]}` : "";
   return `${location.origin}${repoPart}`;
 }
-
 
 function makeId(len = 8) {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -115,41 +114,70 @@ function formatMs(ms) {
 }
 
 /* =========================
-   Copy image to clipboard (WhatsApp Web) - expert only
+   Copy/Share full table image (mobile friendly)
    ========================= */
 async function copyCaptureAreaImage() {
   const area = document.getElementById("captureArea");
   if (!area) return toast("לא נמצא אזור צילום", "error");
 
   if (!window.html2canvas) {
-    return toast("html2canvas לא נטען. בדוק שהוספת סקריפט ב-expert.html", "error");
+    return toast("html2canvas לא נטען. בדוק שיש סקריפט ב-expert.html", "error");
   }
 
-  toast("מכין תמונה להדבקה...", "info", 1200);
+  toast("מכין תמונה כמו הטופס…", "info", 1400);
+
+  // מצב צילום (מסתיר כפתורים/טיימר וכו')
+  document.body.classList.add("capture-mode");
+
+  const prevScrollY = window.scrollY;
+  const prevScrollX = window.scrollX;
+  window.scrollTo(0, 0);
+  await new Promise(r => setTimeout(r, 140));
+
+  // גובה מלא של האזור
+  const fullWidth = area.scrollWidth;
+  const fullHeight = area.scrollHeight;
 
   const canvas = await window.html2canvas(area, {
     backgroundColor: "#ffffff",
-    scale: 2
+    scale: 2,
+    useCORS: true,
+    allowTaint: true,
+    width: fullWidth,
+    height: fullHeight,
+    windowWidth: fullWidth,
+    windowHeight: fullHeight,
+    scrollX: 0,
+    scrollY: 0
   });
 
-  if (navigator.clipboard && window.ClipboardItem) {
-    try {
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
-      const item = new ClipboardItem({ "image/png": blob });
-      await navigator.clipboard.write([item]);
-      toast("התמונה הועתקה ✅ הדבק בוואטסאפ Web (Ctrl+V)", "success", 3200);
+  document.body.classList.remove("capture-mode");
+  window.scrollTo(prevScrollX, prevScrollY);
+
+  const dataUrl = canvas.toDataURL("image/png");
+
+  // Mobile share (WhatsApp)
+  try {
+    const blob = await (await fetch(dataUrl)).blob();
+    const file = new File([blob], `winner-table-${formId || "form"}.png`, { type: "image/png" });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: "Winner Table",
+        text: "טבלת משחקים + ניחושים"
+      });
+      toast("נפתח שיתוף ✅ בחר WhatsApp", "success", 2800);
       return;
-    } catch (e) {
-      console.warn("Clipboard image failed, fallback to download:", e);
     }
-  }
+  } catch (_) {}
 
   // fallback: download
   const link = document.createElement("a");
   link.download = `winner-table-${formId || "form"}.png`;
-  link.href = canvas.toDataURL("image/png");
+  link.href = dataUrl;
   link.click();
-  toast("הדפדפן לא מאפשר העתקה כתמונה — ירדה הורדה במקום ✅", "warning", 3200);
+  toast("התמונה נשמרה ✅", "success", 2600);
 }
 
 /* =========================
@@ -307,7 +335,7 @@ async function initExpert() {
     linkInfo.innerHTML = `
       <div class="muted">קישור מומחה (שמור לעצמך): <b>${expertUrl}</b></div>
       <div class="muted">קישור שחקנים (לשליחה): <b>${playersUrl}</b></div>
-      <div class="muted">📌 לשיתוף: לחץ “העתק תמונה” ואז הדבק בוואטסאפ Web.</div>
+      <div class="muted">📌 בטלפון: לחץ “צילום/שיתוף” ואז בחר WhatsApp.</div>
     `;
 
     btnCopyExpert.addEventListener("click", () => copyText(expertUrl));
@@ -329,7 +357,6 @@ async function initExpert() {
 
     adminHash = d.adminHash || adminHash;
 
-    // show current end time in input
     if (guessEndEl && formData.guessEndAt) {
       guessEndEl.value = msToLocalDatetimeValue(formData.guessEndAt);
     }
@@ -379,7 +406,7 @@ async function initExpert() {
     const current = Array.isArray(formData.players) ? [...formData.players] : DEFAULT_PLAYERS.slice();
     if (current.includes(name)) return toast("השם כבר קיים", "warning");
 
-    current.push(name); // after Shimon (end)
+    current.push(name);
     await updateDoc(formRef(), { players: current });
     newPlayerNameEl.value = "";
     toast("שחקן נוסף ✅", "success");
@@ -399,7 +426,6 @@ async function initExpert() {
 
     const updatedPlayers = current.filter(p => p !== name);
 
-    // remove greens for that player
     const results = JSON.parse(JSON.stringify(formData.results || {}));
     Object.keys(results).forEach(mid => {
       if (results[mid]?.[name]) delete results[mid][name];
@@ -460,11 +486,9 @@ async function initExpert() {
     const removed = formData.matches[idx];
     const matches = formData.matches.filter((_, i) => i !== idx);
 
-    // remove results for removed match
     const results = { ...(formData.results || {}) };
     if (removed?.id && results[removed.id]) delete results[removed.id];
 
-    // remove guesses for that match from all players
     const batch = writeBatch(db);
     const snaps = await getDocs(guessesColRef());
     snaps.forEach(gs => {
@@ -567,7 +591,7 @@ function startExpertTicker(el) {
   expertTimerInterval = setInterval(() => renderExpertGuessStatus(el), 1000);
 }
 
-/* ===== Expert table: headers + rowspan day + rowspan league (sequence runs) ===== */
+/* ===== Expert table with rowspan day + rowspan league (sequence runs) ===== */
 function renderExpertTable() {
   const table = document.getElementById("mainTable");
   if (!table) return;
@@ -768,7 +792,7 @@ async function initPlayer() {
     formData.guessClosed = !!d.guessClosed;
 
     populatePlayersDropdown();
-    renderPlayerTable(); // ✅ בית|חוץ|ניחוש
+    renderPlayerTable();
     renderPlayerTimer(timerInfo, btnSave);
     startPlayerTicker(timerInfo, btnSave);
   });
@@ -852,7 +876,7 @@ function startPlayerTicker(el, btnSave) {
   playerTimerInterval = setInterval(() => renderPlayerTimer(el, btnSave), 1000);
 }
 
-/* ✅ טבלת שחקנים: רק בית | חוץ | ניחוש */
+/* טבלת שחקנים: רק בית | חוץ | ניחוש */
 function renderPlayerTable() {
   const table = document.getElementById("playerTable");
   if (!table) return;
