@@ -67,7 +67,11 @@ body[data-theme="dark"] .card{
   font-weight:700;
   margin-bottom:10px;
 }
-.card-body{}
+.card-body{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
 
 /* ===== Controls ===== */
 .btn-row{
