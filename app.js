@@ -597,7 +597,20 @@ function renderExpertTable() {
   if (!table) return;
 
   const PLAYERS_ORDER = getPlayersOrder();
-  const matches = formData.matches || [];
+  // ✅ מסדרים כדי שליגות יהיו אחת מתחת לשנייה (כמו בטופס)
+const matches = (formData.matches || []).slice().sort((a, b) => {
+  const dayA = (a.day || "").trim();
+  const dayB = (b.day || "").trim();
+  if (dayA !== dayB) return dayA.localeCompare(dayB, "he");
+
+  const lgA = (a.league || "").trim();
+  const lgB = (b.league || "").trim();
+  if (lgA !== lgB) return lgA.localeCompare(lgB, "he");
+
+  // יציב: לפי זמן יצירה/מספר אם תרצה בעתיד
+  return 0;
+});
+
   const results = formData.results || {};
 
   table.innerHTML = "";
