@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -50,7 +51,7 @@
   </div>
 </section>
 
-<!-- ✏️ עריכת משחק -->
+<!-- ✏️ עריכת משחק (נפרד מהוספה) -->
 <section class="card no-capture" id="editCard">
   <div class="card-title">✏️ עריכת משחק בטבלה</div>
   <div class="card-body">
@@ -81,7 +82,7 @@
       <input id="deleteIndex" type="number" min="1" placeholder="מספר שורה למחיקה" />
       <button id="btnDelete" type="button" class="btn btn-danger" disabled>🗑 מחק משחק</button>
       <button id="btnClear" type="button" class="btn btn-danger" disabled>🧨 נקה את כל הטבלה</button>
-    </div>
+      </div>
     <div class="muted"></div>
   </div>
 </section>
@@ -120,25 +121,17 @@
   </div>
 </section>
 
-<!-- ===== האזור שמצטלם ===== -->
+<!-- ===== האזור שמצטלם בדיוק כמו הטופס ===== -->
 <section id="captureArea" class="capture-area">
   <h2 class="capture-title">טבלת משחקים</h2>
 
-  <!-- ✅ עטיפה לגלילה במובייל -->
-  <div class="table-wrap">
+  <div class="tables-row">
+    <div class="table-wrap results-wrap">
+      <table id="resultsTable"></table>
+    </div>
 
-    <div class="tables-row">
-
-      <!-- טבלת תוצאות -->
-      <div class="results-wrap">
-        <table id="resultsTable"></table>
-      </div>
-
-      <!-- טבלת שחקנים -->
-      <div>
-        <table id="mainTable"></table>
-      </div>
-
+    <div class="table-wrap">
+      <table id="mainTable"></table>
     </div>
   </div>
 
