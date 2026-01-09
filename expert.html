@@ -2,83 +2,153 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>טופס ניחושים</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>מומחה – Winner Form</title>
+
   <link rel="stylesheet" href="style.css" />
+
+  <!-- html2canvas לצילום -->
+  <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
 
-<h2>טופס ניחושים</h2>
+<header class="no-capture">
+  <div class="header-inner">
+    <h1>Winner Form – מומחה</h1>
+    <div class="header-actions">
+      <button id="themeToggle" type="button" class="btn btn-ghost">🌙 מצב כהה</button>
+    </div>
+  </div>
+</header>
 
-<div class="tables-wrapper">
+<!-- קישורים לשיתוף -->
+<section class="card no-capture">
+  <div class="card-title">🔗 קישורים לשיתוף</div>
+  <div class="card-body">
+    <div id="linkInfo" class="muted">לחץ “צור טופס חדש” כדי לקבל קישורים.</div>
 
-  <!-- ===== טבלת שחקנים ===== -->
-  <div class="table-container">
-    <table id="playersTable">
-      <thead>
-        <tr>
-          <th>שמעון</th>
-          <th>ציביר</th>
-          <th>וואסים</th>
-          <th>עידו</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- 16 משחקים -->
-        <!-- כל תא צריך data-player ו-data-match -->
-        <!-- דוגמה: -->
-        <!-- אפשר להמשיך באותו מבנה שכבר היה לך -->
-        <script>
-          for(let i=1;i<=16;i++){
-            document.write(`<tr>
-              <td data-player="shimon" data-match="${i}"></td>
-              <td data-player="tzivir" data-match="${i}"></td>
-              <td data-player="wasim" data-match="${i}"></td>
-              <td data-player="ido" data-match="${i}"></td>
-            </tr>`);
-          }
-        </script>
-      </tbody>
-      <tfoot>
-        <tr>
-          <th id="score-shimon">0</th>
-          <th id="score-tzivir">0</th>
-          <th id="score-wasim">0</th>
-          <th id="score-ido">0</th>
-        </tr>
-      </tfoot>
-    </table>
+    <div class="btn-row">
+      <button id="btnNew" type="button" class="btn btn-primary">➕ צור טופס חדש</button>
+      <button id="btnCopyExpert" type="button" class="btn btn-outline" disabled>🔑 העתק קישור מומחה</button>
+      <button id="btnCopyPlayers" type="button" class="btn btn-outline" disabled>👥 העתק קישור שחקנים</button>
+      <button id="btnCopyImage" type="button" class="btn btn-success" disabled>📸 צילום/שיתוף לוואטסאפ</button>
+    </div>
+  </div>
+</section>
+
+<!-- הוספת משחק -->
+<section class="card no-capture">
+  <div class="card-title">➕ הוספת משחק לטבלה</div>
+  <div class="card-body">
+    <form id="matchForm" class="form-grid">
+      <input id="day" placeholder="יום המשחק" required />
+      <input id="league" placeholder="ליגה" required />
+      <input id="home" placeholder="קבוצת בית" required />
+      <input id="away" placeholder="קבוצת חוץ" required />
+      <button type="submit" class="btn btn-primary">הוסף משחק</button>
+    </form>
+  </div>
+</section>
+
+<!-- ✏️ עריכת משחק -->
+<section class="card no-capture" id="editCard">
+  <div class="card-title">✏️ עריכת משחק בטבלה</div>
+  <div class="card-body">
+
+    <div class="btn-row">
+      <input id="editIndex" type="number" min="1" placeholder="מספר שורה לעריכה" />
+      <button id="btnLoadEdit" type="button" class="btn btn-outline" disabled>📥 טען לעריכה</button>
+      <button id="btnCancelEdit" type="button" class="btn btn-ghost" disabled>ביטול</button>
+    </div>
+
+    <form id="editForm" class="form-grid">
+      <input id="editDay" placeholder="יום המשחק" required />
+      <input id="editLeague" placeholder="ליגה" required />
+      <input id="editHome" placeholder="קבוצת בית" required />
+      <input id="editAway" placeholder="קבוצת חוץ" required />
+      <button id="btnSaveEdit" type="submit" class="btn btn-primary" disabled>💾 שמור עריכה</button>
+    </form>
+
+    <div class="muted"></div>
+  </div>
+</section>
+
+<!-- מחיקה וניקוי -->
+<section class="card no-capture">
+  <div class="card-title">🧹 מחיקת משחק בטבלה</div>
+  <div class="card-body">
+    <div class="btn-row">
+      <input id="deleteIndex" type="number" min="1" placeholder="מספר שורה למחיקה" />
+      <button id="btnDelete" type="button" class="btn btn-danger" disabled>🗑 מחק משחק</button>
+      <button id="btnClear" type="button" class="btn btn-danger" disabled>🧨 נקה את כל הטבלה</button>
+    </div>
+    <div class="muted"></div>
+  </div>
+</section>
+
+<!-- ניהול שחקנים -->
+<section class="card no-capture">
+  <div class="card-title">👤 ניהול שחקנים</div>
+  <div class="card-body">
+    <div class="player-admin">
+      <div class="inline">
+        <input id="newPlayerName" placeholder="שם שחקן חדש" />
+        <button id="btnAddPlayer" type="button" class="btn btn-primary" disabled>➕ הוסף שחקן</button>
+      </div>
+
+      <div class="inline">
+        <input id="deletePlayerName" placeholder="שם שחקן למחיקה" />
+        <button id="btnDeletePlayer" type="button" class="btn btn-danger" disabled>🗑 מחק שחקן</button>
+      </div>
+
+      <div class="muted"></div>
+    </div>
+  </div>
+</section>
+
+<!-- טיימר ניחושים -->
+<section class="card no-capture">
+  <div class="card-title">🕒 טיימר ניחושים</div>
+  <div class="card-body">
+    <div class="timer-row">
+      <label class="muted">ניחושים עד:</label>
+      <input id="guessEnd" type="datetime-local" />
+      <button id="btnStartGuess" type="button" class="btn btn-primary" disabled>⏱ התחל זמן ניחושים</button>
+      <button id="btnStopGuess" type="button" class="btn btn-danger" disabled>⛔ עצור ניחושים עכשיו</button>
+    </div>
+    <div id="guessStatus" class="muted" style="margin-top:10px;">ניחושים עדיין לא התחילו.</div>
+  </div>
+</section>
+
+<!-- ===== האזור שמצטלם ===== -->
+<section id="captureArea" class="capture-area">
+  <h2 class="capture-title">טבלת משחקים</h2>
+
+  <!-- ✅ עטיפה לגלילה במובייל -->
+  <div class="table-wrap">
+
+    <div class="tables-row">
+
+      <!-- טבלת תוצאות -->
+      <div class="results-wrap">
+        <table id="resultsTable"></table>
+      </div>
+
+      <!-- טבלת שחקנים -->
+      <div>
+        <table id="mainTable"></table>
+      </div>
+
+    </div>
   </div>
 
-  <!-- ===== טבלת תוצאות ===== -->
-  <div class="table-container results-table">
-    <table id="resultsTable">
-      <thead>
-        <tr>
-          <th>תוצאה</th>
-        </tr>
-      </thead>
-      <tbody>
-        <script>
-          for(let i=1;i<=16;i++){
-            document.write(`<tr>
-              <td>
-                <select data-match="${i}">
-                  <option value="">-</option>
-                  <option value="1">1</option>
-                  <option value="X">X</option>
-                  <option value="2">2</option>
-                </select>
-              </td>
-            </tr>`);
-          }
-        </script>
-      </tbody>
-    </table>
+  <div class="table-wrap totals-wrap">
+    <table id="totalsTable"></table>
   </div>
+</section>
 
-</div>
+<div id="toastHost" class="toast-host no-capture"></div>
 
-<script src="app.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>
