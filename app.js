@@ -508,7 +508,7 @@ async function initExpert() {
     toast(`עודכנה שורה ${editingIndex + 1} ✅`, "success");
     exitEditMode();
   });
-  });
+  };
 
   btnAddPlayer?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
@@ -643,7 +643,7 @@ async function initExpert() {
     exitEditMode();
     toast("הטבלה נוקתה ✅", "success");
   });
-}
+
 
 function disableExpertActions() {
   const ids = [
