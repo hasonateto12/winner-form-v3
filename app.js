@@ -249,6 +249,52 @@ function getGuessState() {
   return { state: "running", remainingMs: remaining };
 }
 
+/* =========================
+   ✅ GROUPING (ליגה כמו בטופס)
+   - כדי ש-rowspan של ליגה יעבוד בדיוק כמו בתמונה:
+     אנחנו מקבצים את כל המשחקים לפי ליגה (לפי סדר הופעה ראשון),
+     ובתוך כל ליגה שומרים על סדר הזנה מקורי.
+   ========================= */
+function getMatchesGroupedByLeague(raw = []) {
+  const withIdx = raw.map((m, idx) => ({ ...m, __idx: idx }));
+
+  // סדר הופעה ראשון של ליגות
+  const leagueFirstOrder = new Map();
+  withIdx.forEach(m => {
+    const lg = (m.league || "").trim();
+    if (!leagueFirstOrder.has(lg)) leagueFirstOrder.set(lg, leagueFirstOrder.size);
+  });
+
+  // מיון: קודם לפי סדר הליגה, ואז לפי סדר הזנה
+  withIdx.sort((a, b) => {
+    const la = leagueFirstOrder.get((a.league || "").trim()) ?? 999;
+    const lb = leagueFirstOrder.get((b.league || "").trim()) ?? 999;
+    if (la !== lb) return la - lb;
+    return a.__idx - b.__idx;
+  });
+
+  return withIdx.map(({ __idx, ...m }) => m);
+}
+
+// rowspan לרצפים רצופים בלבד
+function buildRunSpans(list, keyFn) {
+  const spans = new Map(); // startIndex -> length
+  let i = 0;
+  while (i < list.length) {
+    const key = keyFn(list[i]);
+    let j = i + 1;
+    while (j < list.length && keyFn(list[j]) === key) j++;
+    spans.set(i, j - i);
+    i = j;
+  }
+  return spans;
+}
+
+// ✅ תמיד לעבוד עם אותו "סדר תצוגה" (גם למחיקה לפי מספר שורה!)
+function getDisplayedMatches() {
+  return getMatchesGroupedByLeague(formData.matches || []);
+}
+
 /* ===================== EXPERT ===================== */
 async function initExpert() {
   const btnNew = document.getElementById("btnNew");
@@ -473,29 +519,34 @@ async function initExpert() {
     toast("ניחושים נסגרו ⏹", "warning");
   });
 
-  // Delete match by row number
+  /* ✅✅✅ מחיקת משחק לפי מספר שורה — מתואם לסדר התצוגה החדש (ליגה מקובצת) */
   btnDelete?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
+    const displayed = getDisplayedMatches();
     const n = Number(document.getElementById("deleteIndex").value);
-    if (!Number.isFinite(n) || n < 1 || n > formData.matches.length) {
+    if (!Number.isFinite(n) || n < 1 || n > displayed.length) {
       return toast("מספר שורה לא תקין", "error");
     }
 
-    const idx = n - 1;
-    const removed = formData.matches[idx];
-    const matches = formData.matches.filter((_, i) => i !== idx);
+    const toRemove = displayed[n - 1];         // זה המשחק כפי שמופיע בטבלה
+    if (!toRemove?.id) return toast("לא נמצא משחק למחיקה", "error");
+
+    // מוחקים מהמקור לפי id (כדי שלא תימחק שורה אחרת)
+    const matches = (formData.matches || []).filter(m => m.id !== toRemove.id);
 
     const results = { ...(formData.results || {}) };
-    if (removed?.id && results[removed.id]) delete results[removed.id];
+    if (results[toRemove.id]) delete results[toRemove.id];
 
     const batch = writeBatch(db);
+
+    // מחיקה מכל הניחושים של השחקנים
     const snaps = await getDocs(guessesColRef());
     snaps.forEach(gs => {
       const data = gs.data() || {};
       const picks = data.picks || {};
-      if (removed?.id && picks[removed.id] !== undefined) {
-        delete picks[removed.id];
+      if (picks[toRemove.id] !== undefined) {
+        delete picks[toRemove.id];
         batch.set(gs.ref, { picks }, { merge: true });
       }
     });
@@ -591,26 +642,13 @@ function startExpertTicker(el) {
   expertTimerInterval = setInterval(() => renderExpertGuessStatus(el), 1000);
 }
 
-/* ===== Expert table with rowspan day + rowspan league (sequence runs) ===== */
+/* ===== Expert table: ✅ league grouped like the form + rowspan league/day (only for consecutive runs) ===== */
 function renderExpertTable() {
   const table = document.getElementById("mainTable");
   if (!table) return;
 
   const PLAYERS_ORDER = getPlayersOrder();
-  // ✅ מסדרים כדי שליגות יהיו אחת מתחת לשנייה (כמו בטופס)
-const matches = (formData.matches || []).slice().sort((a, b) => {
-  const dayA = (a.day || "").trim();
-  const dayB = (b.day || "").trim();
-  if (dayA !== dayB) return dayA.localeCompare(dayB, "he");
-
-  const lgA = (a.league || "").trim();
-  const lgB = (b.league || "").trim();
-  if (lgA !== lgB) return lgA.localeCompare(lgB, "he");
-
-  // יציב: לפי זמן יצירה/מספר אם תרצה בעתיד
-  return 0;
-});
-
+  const matches = getDisplayedMatches(); // ✅ חשוב: זה הסדר שמוצג בטבלה
   const results = formData.results || {};
 
   table.innerHTML = "";
@@ -625,49 +663,31 @@ const matches = (formData.matches || []).slice().sort((a, b) => {
   `;
   table.appendChild(header);
 
-  // day runs
-  const daySpanAt = {};
-  let i = 0;
-  while (i < matches.length) {
-    const day = matches[i].day;
-    let span = 1;
-    while (i + span < matches.length && matches[i + span].day === day) span++;
-    daySpanAt[i] = span;
-    i += span;
-  }
-
-  // league runs
-  const leagueSpanAt = {};
-  i = 0;
-  while (i < matches.length) {
-    const lg = matches[i].league;
-    let span = 1;
-    while (i + span < matches.length && matches[i + span].league === lg) span++;
-    leagueSpanAt[i] = span;
-    i += span;
-  }
+  // רצפים (rowspan) לפי הסדר המוצג
+  const daySpanAt = buildRunSpans(matches, m => (m.day || "").trim());
+  const leagueSpanAt = buildRunSpans(matches, m => (m.league || "").trim());
 
   for (let r = 0; r < matches.length; r++) {
     const m = matches[r];
     const tr = document.createElement("tr");
     tr.innerHTML += `<td>${r + 1}</td>`;
 
-    if (daySpanAt[r]) {
+    if (daySpanAt.has(r)) {
       const tdDay = document.createElement("td");
-      tdDay.textContent = m.day;
-      tdDay.rowSpan = daySpanAt[r];
+      tdDay.textContent = m.day || "";
+      tdDay.rowSpan = daySpanAt.get(r);
       tr.appendChild(tdDay);
     }
 
-    if (leagueSpanAt[r]) {
+    if (leagueSpanAt.has(r)) {
       const tdLeague = document.createElement("td");
-      tdLeague.textContent = m.league;
-      tdLeague.rowSpan = leagueSpanAt[r];
+      tdLeague.textContent = m.league || "";
+      tdLeague.rowSpan = leagueSpanAt.get(r);
       tr.appendChild(tdLeague);
     }
 
-    tr.innerHTML += `<td>${m.home}</td>`;
-    tr.innerHTML += `<td>${m.away}</td>`;
+    tr.innerHTML += `<td>${m.home || ""}</td>`;
+    tr.innerHTML += `<td>${m.away || ""}</td>`;
 
     PLAYERS_ORDER.forEach(player => {
       const matchId = m.id;
@@ -729,11 +749,14 @@ function renderTotalsOutside() {
   const mainHeader = mainTable.querySelector("tr");
   if (!mainHeader) return;
 
+  // התאמת רוחב לטבלה הראשית (יותר יציב במובייל: אחרי שהדף נצבע)
   const ths = Array.from(mainHeader.children);
+
   const colgroup = document.createElement("colgroup");
   ths.forEach(th => {
+    const w = th.getBoundingClientRect().width || th.offsetWidth || 0;
     const col = document.createElement("col");
-    col.style.width = `${th.getBoundingClientRect().width}px`;
+    if (w) col.style.width = `${w}px`;
     colgroup.appendChild(col);
   });
   totalsTable.appendChild(colgroup);
@@ -907,8 +930,8 @@ function renderPlayerTable() {
   matches.forEach((m) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${m.home}</td>
-      <td>${m.away}</td>
+      <td>${m.home || ""}</td>
+      <td>${m.away || ""}</td>
       <td>
         <select data-mid="${m.id}">
           <option value=""></option>
