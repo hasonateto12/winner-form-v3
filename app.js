@@ -72,7 +72,6 @@ function getPlayersOrder() {
 function qs() { return new URLSearchParams(location.search); }
 
 function getBaseUrl() {
-  // works for GitHub Pages and normal hosting
   const pathParts = location.pathname.split("/").filter(Boolean);
   const isGithubPages = location.hostname.endsWith("github.io");
   const repoPart = isGithubPages && pathParts.length ? `/${pathParts[0]}` : "";
@@ -199,7 +198,7 @@ let formData = {
 let guessesByPlayer = {};
 let resultMode = false;
 
-// ✅ מצב עריכה
+// ✅ עריכה נפרדת
 let editingIndex = -1;
 
 let expertTimerInterval = null;
@@ -250,8 +249,6 @@ function getGuessState() {
 
 /* =========================
    ✅ Rowspan by RUNS (sequences only)
-   - no sorting
-   - works exactly like the form image
    ========================= */
 function buildRunSpans(list, keyFn) {
   const spans = {}; // startIndex -> length
@@ -288,31 +285,44 @@ async function initExpert() {
   const newPlayerNameEl = document.getElementById("newPlayerName");
   const deletePlayerNameEl = document.getElementById("deletePlayerName");
 
-  // ✅ עריכה
+  // ✅ עריכה נפרדת
+  const editCard = document.getElementById("editCard");
   const editIndexEl = document.getElementById("editIndex");
   const btnLoadEdit = document.getElementById("btnLoadEdit");
   const btnCancelEdit = document.getElementById("btnCancelEdit");
-  const editHint = document.getElementById("editHint");
+  const editForm = document.getElementById("editForm");
+  const btnSaveEdit = document.getElementById("btnSaveEdit");
 
-  const matchForm = document.getElementById("matchForm");
-  const submitBtn = document.getElementById("btnSubmitMatch") || matchForm?.querySelector('button[type="submit"]');
+  const editDay = document.getElementById("editDay");
+  const editLeague = document.getElementById("editLeague");
+  const editHome = document.getElementById("editHome");
+  const editAway = document.getElementById("editAway");
 
-  function setEditMode(idx) {
-    editingIndex = idx;
-    const on = idx >= 0;
-
-    if (submitBtn) {
-      submitBtn.textContent = on ? "💾 שמור עריכה" : "הוסף משחק";
-    }
-    if (btnCancelEdit) btnCancelEdit.disabled = !on;
-    if (editHint) editHint.style.display = on ? "block" : "none";
+  function setEditEnabled(enabled) {
+    if (btnSaveEdit) btnSaveEdit.disabled = !enabled;
+    if (btnCancelEdit) btnCancelEdit.disabled = !enabled;
+    if (editDay) editDay.disabled = !enabled;
+    if (editLeague) editLeague.disabled = !enabled;
+    if (editHome) editHome.disabled = !enabled;
+    if (editAway) editAway.disabled = !enabled;
   }
 
-  function resetEditMode() {
-    setEditMode(-1);
-    matchForm?.reset();
+  function clearEditFields() {
+    if (editDay) editDay.value = "";
+    if (editLeague) editLeague.value = "";
+    if (editHome) editHome.value = "";
+    if (editAway) editAway.value = "";
+  }
+
+  function exitEditMode() {
+    editingIndex = -1;
+    clearEditFields();
+    setEditEnabled(false);
     if (editIndexEl) editIndexEl.value = "";
   }
+
+  // מתחיל כבוי עד שטוענים שורה
+  setEditEnabled(false);
 
   btnNew?.addEventListener("click", async () => {
     const newId = makeId(10);
@@ -352,6 +362,8 @@ async function initExpert() {
     if (linkInfo) linkInfo.textContent = "⚠️ חסר/לא נכון מפתח מומחה בקישור. פתח את קישור המומחה המקורי.";
     disableExpertActions();
     if (btnCopyImage) btnCopyImage.disabled = true;
+    // גם עריכה נשארת כבויה
+    exitEditMode();
   } else {
     enableExpertActions();
 
@@ -361,9 +373,8 @@ async function initExpert() {
     if (btnStartGuess) btnStartGuess.disabled = false;
     if (btnStopGuess) btnStopGuess.disabled = false;
 
-    // ✅ עריכה
+    // ✅ מאפשרים טעינה לעריכה
     if (btnLoadEdit) btnLoadEdit.disabled = false;
-    if (btnCancelEdit) btnCancelEdit.disabled = true;
 
     if (btnCopyImage) {
       btnCopyImage.disabled = false;
@@ -404,9 +415,9 @@ async function initExpert() {
       guessEndEl.value = msToLocalDatetimeValue(formData.guessEndAt);
     }
 
-    // אם המשחקים השתנו והמיקום בעריכה כבר לא קיים
+    // אם עריכה פתוחה והשורה נעלמה (מחיקה/ניקוי)
     if (editingIndex >= formData.matches.length) {
-      resetEditMode();
+      exitEditMode();
     }
 
     await loadAllGuesses();
@@ -416,7 +427,27 @@ async function initExpert() {
     startExpertTicker(guessStatus);
   });
 
-  // ✅ טען שורה לעריכה -> ממלא את הטופס וה-submit הופך ל"שמור עריכה"
+  // ✅ הוספת משחק (נשאר רגיל)
+  const matchForm = document.getElementById("matchForm");
+  matchForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
+
+    const match = {
+      id: makeId(12),
+      day: document.getElementById("day").value.trim(),
+      league: document.getElementById("league").value.trim(),
+      home: document.getElementById("home").value.trim(),
+      away: document.getElementById("away").value.trim()
+    };
+
+    const matches = [...formData.matches, match];
+    await updateDoc(formRef(), { matches });
+    matchForm.reset();
+    toast("משחק נוסף ✅", "success");
+  });
+
+  // ✅ טען לעריכה
   btnLoadEdit?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
@@ -429,65 +460,55 @@ async function initExpert() {
     const m = formData.matches[idx];
     if (!m) return toast("שורה לא נמצאה", "error");
 
-    document.getElementById("day").value = m.day || "";
-    document.getElementById("league").value = m.league || "";
-    document.getElementById("home").value = m.home || "";
-    document.getElementById("away").value = m.away || "";
+    editingIndex = idx;
+    if (editDay) editDay.value = m.day || "";
+    if (editLeague) editLeague.value = m.league || "";
+    if (editHome) editHome.value = m.home || "";
+    if (editAway) editAway.value = m.away || "";
 
-    setEditMode(idx);
+    setEditEnabled(true);
+
+    // אופציונלי: גלילה לכרטיס העריכה
+    editCard?.scrollIntoView({ behavior: "smooth", block: "start" });
+
     toast(`נטענה שורה ${n} לעריכה ✏️`, "success");
   });
 
+  // ✅ ביטול עריכה
   btnCancelEdit?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
-    resetEditMode();
+    exitEditMode();
     toast("בוטלה עריכה", "info");
   });
 
-  // ✅ submit: אם יש עריכה -> עדכון. אחרת -> הוספה רגילה
-  matchForm?.addEventListener("submit", async (e) => {
+  // ✅ שמור עריכה (מתוך editForm)
+  editForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
-    const day = document.getElementById("day").value.trim();
-    const league = document.getElementById("league").value.trim();
-    const home = document.getElementById("home").value.trim();
-    const away = document.getElementById("away").value.trim();
+    if (editingIndex < 0 || editingIndex >= formData.matches.length) {
+      return toast("אין שורה טעונה לעריכה", "warning");
+    }
+
+    const day = (editDay?.value || "").trim();
+    const league = (editLeague?.value || "").trim();
+    const home = (editHome?.value || "").trim();
+    const away = (editAway?.value || "").trim();
 
     if (!day || !league || !home || !away) {
-      return toast("מלא את כל השדות", "warning");
+      return toast("מלא את כל השדות לפני שמירה", "warning");
     }
 
-    // מצב עריכה
-    if (editingIndex >= 0) {
-      if (editingIndex >= formData.matches.length) {
-        resetEditMode();
-        return toast("השורה כבר לא קיימת (התעדכן). נסה שוב.", "error");
-      }
+    const matches = [...formData.matches];
+    const old = matches[editingIndex];
 
-      const matches = [...formData.matches];
-      const old = matches[editingIndex];
+    // חשוב: משאירים אותו id כדי לא לשבור ניחושים/תוצאות
+    matches[editingIndex] = { ...old, day, league, home, away };
 
-      // שומרים את אותו id כדי לא לשבור ניחושים/תוצאות
-      matches[editingIndex] = { ...old, day, league, home, away };
-
-      await updateDoc(formRef(), { matches });
-      toast(`עודכנה שורה ${editingIndex + 1} ✅`, "success");
-
-      resetEditMode();
-      return;
-    }
-
-    // מצב הוספה רגיל
-    const match = {
-      id: makeId(12),
-      day, league, home, away
-    };
-
-    const matches = [...formData.matches, match];
     await updateDoc(formRef(), { matches });
-    matchForm.reset();
-    toast("משחק נוסף ✅", "success");
+
+    toast(`עודכנה שורה ${editingIndex + 1} ✅`, "success");
+    exitEditMode();
   });
 
   btnMode?.addEventListener("click", async () => {
@@ -599,8 +620,8 @@ async function initExpert() {
     batch.update(formRef(), { matches, results });
     await batch.commit();
 
-    // אם מחקת שורה שנמצאת בעריכה – יוצאים מעריכה
-    if (editingIndex === idx) resetEditMode();
+    // אם מחקת שורה שנמצאת בעריכה
+    if (editingIndex === idx) exitEditMode();
     if (editingIndex > idx) editingIndex -= 1;
 
     document.getElementById("deleteIndex").value = "";
@@ -625,7 +646,7 @@ async function initExpert() {
     });
 
     await batch.commit();
-    resetEditMode();
+    exitEditMode();
     toast("הטבלה נוקתה ✅", "success");
   });
 }
@@ -635,8 +656,8 @@ function disableExpertActions() {
     "matchForm","btnDelete","btnClear","btnMode",
     "btnStartGuess","btnStopGuess","guessEnd",
     "newPlayerName","btnAddPlayer","deletePlayerName","btnDeletePlayer",
-    // ✅ עריכה
-    "editIndex","btnLoadEdit","btnCancelEdit"
+    // עריכה
+    "editIndex","btnLoadEdit","btnCancelEdit","editForm","btnSaveEdit","editDay","editLeague","editHome","editAway"
   ];
   ids.forEach(id => {
     const el = document.getElementById(id);
@@ -653,16 +674,18 @@ function enableExpertActions() {
   [
     "btnDelete","btnClear","guessEnd",
     "newPlayerName","btnAddPlayer","deletePlayerName","btnDeletePlayer",
-    // ✅ עריכה
-    "editIndex","btnLoadEdit","btnCancelEdit"
+    // עריכה
+    "editIndex","btnLoadEdit"
   ].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.disabled = false;
   });
 
-  // ביטול עריכה מתחיל כבוי (רק כשנכנסים לעריכה נדליק)
-  const btnCancelEdit = document.getElementById("btnCancelEdit");
-  if (btnCancelEdit) btnCancelEdit.disabled = true;
+  // שדות העריכה עצמם נשארים נעולים עד שטוענים שורה
+  ["btnCancelEdit","btnSaveEdit","editDay","editLeague","editHome","editAway"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = true;
+  });
 }
 
 async function isAdminOk() {
@@ -729,7 +752,6 @@ function renderExpertTable() {
 
   for (let r = 0; r < matches.length; r++) {
     const m = matches[r];
-
     const tr = document.createElement("tr");
 
     tr.insertAdjacentHTML("beforeend", `<td>${r + 1}</td>`);

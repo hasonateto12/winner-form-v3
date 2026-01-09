@@ -45,22 +45,31 @@
       <input id="league" placeholder="ליגה" required />
       <input id="home" placeholder="קבוצת בית" required />
       <input id="away" placeholder="קבוצת חוץ" required />
-      <button id="btnSubmitMatch" type="submit" class="btn btn-primary">הוסף משחק</button>
+      <button type="submit" class="btn btn-primary">הוסף משחק</button>
     </form>
-    <div id="editHint" class="muted" style="display:none;">✏️ אתה במצב עריכה — לחץ “שמור עריכה” כדי לעדכן.</div>
   </div>
 </section>
 
-<!-- ✏️ עריכת משחק -->
-<section class="card no-capture">
+<!-- ✏️ עריכת משחק (נפרד מהוספה) -->
+<section class="card no-capture" id="editCard">
   <div class="card-title">✏️ עריכת משחק לפי מספר שורה</div>
   <div class="card-body">
+
     <div class="btn-row">
       <input id="editIndex" type="number" min="1" placeholder="מספר שורה לעריכה" />
       <button id="btnLoadEdit" type="button" class="btn btn-outline" disabled>📥 טען לעריכה</button>
-      <button id="btnCancelEdit" type="button" class="btn btn-ghost" disabled>ביטול עריכה</button>
+      <button id="btnCancelEdit" type="button" class="btn btn-ghost" disabled>ביטול</button>
     </div>
-    <div class="muted">טען שורה → הנתונים ייכנסו לטופס “הוספת משחק” → הכפתור יהפוך ל-“שמור עריכה”.</div>
+
+    <form id="editForm" class="form-grid">
+      <input id="editDay" placeholder="יום המשחק" required />
+      <input id="editLeague" placeholder="ליגה" required />
+      <input id="editHome" placeholder="קבוצת בית" required />
+      <input id="editAway" placeholder="קבוצת חוץ" required />
+      <button id="btnSaveEdit" type="submit" class="btn btn-primary" disabled>💾 שמור עריכה</button>
+    </form>
+
+    <div class="muted">טען שורה → ערוך כאן → שמור. (לא משפיע על “הוספת משחק”).</div>
   </div>
 </section>
 
