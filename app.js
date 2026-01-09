@@ -315,9 +315,12 @@ async function initExpert() {
       guessStartAt: null,
       guessEndAt: null,
       guessClosed: false
-    });  
-    
-    
+    });
+
+    const base = getBaseUrl();
+    location.href = `${base}/expert.html?id=${newId}&admin=${encodeURIComponent(newAdminKey)}`;
+  });
+
     // Open edit panel
   btnEditOpen?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
@@ -375,13 +378,6 @@ async function initExpert() {
     currentEditIdx = null;
     if (editPanel) editPanel.style.display = "none";
   });
-
-
-    const base = getBaseUrl();
-    location.href = `${base}/expert.html?id=${newId}&admin=${encodeURIComponent(newAdminKey)}`;
-  });
-
-
 
 
   if (!formId) {
