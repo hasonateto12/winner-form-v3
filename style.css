@@ -158,7 +158,7 @@ body[data-theme="dark"] .btn-ghost{
 
 .muted{color:var(--muted)}
 
-/* ===== Table area (must look like form) ===== */
+/* ===== Table area ===== */
 .capture-title{
   max-width:1200px;
   margin:18px auto 10px auto;
@@ -168,8 +168,29 @@ body[data-theme="dark"] .btn-ghost{
 /* רווח לבן בצד שמאל כמו הטופס */
 .table-wrap{
   width:100%;
-  padding-left:120px; /* שנה ל-80/160 לפי מה שאתה רוצה */
+  padding-left:120px;
   box-sizing:border-box;
+}
+
+/* ✅ שתי טבלאות אחת ליד השנייה (תוצאות + ראשית) */
+.tables-row{
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  direction:ltr; /* כדי לשלוט בסידור שמאל->ימין */
+}
+.tables-row > div{
+  direction:rtl; /* הטקסט בתוך הטבלאות נשאר RTL */
+}
+
+/* ✅ טבלת תוצאות צרה */
+.results-wrap{
+  width:120px;
+  flex:0 0 120px;
+  padding-left:0 !important;
+}
+.results-wrap table{
+  width:120px;
 }
 
 /* טבלה “רגילה” בלי פינות עגולות */
@@ -191,6 +212,12 @@ th, td{
 th{
   font-weight:700;
   background:#fff;
+}
+
+/* dropdown קטן בתוך תוצאות */
+.results-wrap select{
+  padding:4px 6px;
+  font-weight:700;
 }
 
 /* totals row style */
