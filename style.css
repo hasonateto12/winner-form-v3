@@ -172,15 +172,15 @@ body[data-theme="dark"] .btn-ghost{
   box-sizing:border-box;
 }
 
-/* ✅ שתי טבלאות אחת ליד השנייה (תוצאות + ראשית) */
+/* ✅ שתי טבלאות אחת ליד השנייה */
 .tables-row{
   display:flex;
   gap:14px;
   align-items:flex-start;
-  direction:ltr; /* כדי לשלוט בסידור שמאל->ימין */
+  direction:ltr;
 }
 .tables-row > div{
-  direction:rtl; /* הטקסט בתוך הטבלאות נשאר RTL */
+  direction:rtl;
 }
 
 /* ✅ טבלת תוצאות צרה */
@@ -193,7 +193,7 @@ body[data-theme="dark"] .btn-ghost{
   width:120px;
 }
 
-/* טבלה “רגילה” בלי פינות עגולות */
+/* טבלאות */
 table{
   width:100%;
   border-collapse:collapse;
@@ -220,7 +220,7 @@ th{
   font-weight:700;
 }
 
-/* totals row style */
+/* totals row */
 #totalsTable td{
   font-weight:700;
 }
@@ -242,7 +242,7 @@ th{
   background:#fff;
 }
 
-/* ===== Capture Mode: hide everything except captureArea ===== */
+/* ===== Capture Mode ===== */
 body.capture-mode{
   background:#fff !important;
 }
@@ -298,3 +298,35 @@ body[data-theme="dark"] .toast{
 .toast-success .toast-dot{background:#22c55e}
 .toast-warning .toast-dot{background:#f59e0b}
 .toast-error .toast-dot{background:#ef4444}
+
+/* ============================= */
+/* ✅ תיקון תצוגת מובייל לטבלאות */
+/* ============================= */
+@media (max-width: 800px){
+
+  /* מאפשר גלילה לרוחב */
+  .table-wrap{
+    overflow-x:auto;
+    padding-left:0;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .tables-row{
+    min-width:900px; /* גורם לגלילה ולא לחיתוך */
+  }
+
+  th, td{
+    padding:5px 6px;
+    font-size:13px;
+    white-space:nowrap;
+  }
+
+  .results-wrap{
+    width:90px;
+    flex:0 0 90px;
+  }
+
+  .results-wrap table{
+    width:90px;
+  }
+}
