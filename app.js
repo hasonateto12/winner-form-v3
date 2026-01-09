@@ -285,6 +285,22 @@ async function initExpert() {
   const newPlayerNameEl = document.getElementById("newPlayerName");
   const deletePlayerNameEl = document.getElementById("deletePlayerName");
 
+
+    // Edit row
+  const btnEditOpen = document.getElementById("btnEditOpen");
+  const btnEditSave = document.getElementById("btnEditSave");
+  const btnEditCancel = document.getElementById("btnEditCancel");
+
+  const editIndexEl = document.getElementById("editIndex");
+  const editPanel = document.getElementById("editPanel");
+  const editDayEl = document.getElementById("editDay");
+  const editLeagueEl = document.getElementById("editLeague");
+  const editHomeEl = document.getElementById("editHome");
+  const editAwayEl = document.getElementById("editAway");
+
+  let currentEditIdx = null;
+
+
   btnNew?.addEventListener("click", async () => {
     const newId = makeId(10);
     const newAdminKey = makeKey(28);
@@ -299,11 +315,71 @@ async function initExpert() {
       guessStartAt: null,
       guessEndAt: null,
       guessClosed: false
-    });
+    });  // Open edit panel
+  btnEditOpen?.addEventListener("click", async () => {
+    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
+
+    const n = Number(editIndexEl?.value);
+    if (!Number.isFinite(n) || n < 1 || n > formData.matches.length) {
+      return toast("מספר שורה לא תקין", "error");
+    }
+
+    currentEditIdx = n - 1;
+    const m = formData.matches[currentEditIdx];
+
+    editDayEl.value = m.day || "";
+    editLeagueEl.value = m.league || "";
+    editHomeEl.value = m.home || "";
+    editAwayEl.value = m.away || "";
+
+    editPanel.style.display = "block";
+    toast(`עריכת שורה #${n}`, "info");
+  });
+
+  // Cancel edit
+  btnEditCancel?.addEventListener("click", () => {
+    currentEditIdx = null;
+    if (editPanel) editPanel.style.display = "none";
+  });
+
+  // Save edit
+  btnEditSave?.addEventListener("click", async () => {
+    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
+    if (currentEditIdx === null) return toast("לא נבחרה שורה לעריכה", "warning");
+
+    const day = (editDayEl.value || "").trim();
+    const league = (editLeagueEl.value || "").trim();
+    const home = (editHomeEl.value || "").trim();
+    const away = (editAwayEl.value || "").trim();
+
+    if (!home || !away) return toast("קבוצת בית וחוץ חובה", "warning");
+
+    const matches = [...formData.matches];
+    const old = matches[currentEditIdx];
+
+    // חשוב: שומרים את ה-ID כדי שהניחושים הקיימים לא יימחקו
+    matches[currentEditIdx] = {
+      ...old,
+      day,
+      league,
+      home,
+      away
+    };
+
+    await updateDoc(formRef(), { matches });
+
+    toast("השורה עודכנה ✅", "success");
+    currentEditIdx = null;
+    if (editPanel) editPanel.style.display = "none";
+  });
+
 
     const base = getBaseUrl();
     location.href = `${base}/expert.html?id=${newId}&admin=${encodeURIComponent(newAdminKey)}`;
   });
+
+
+
 
   if (!formId) {
     if (linkInfo) linkInfo.textContent = "לחץ 'צור טופס חדש' כדי לקבל קישורים לשיתוף בוואטסאפ.";

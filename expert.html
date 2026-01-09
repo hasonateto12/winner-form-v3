@@ -96,6 +96,32 @@
     </div>
     <div class="muted">במצב חישוב נקודות: לחץ על תא של שחקן כדי לסמן/לבטל ירוק.</div>
   </div>
+
+  <div class="card">
+  <h3>✏️ עריכת שורה</h3>
+  <div class="row">
+    <input id="editIndex" type="number" min="1" placeholder="מספר שורה לעריכה" />
+    <button id="btnEditOpen" class="btn btn-primary">פתח עריכה</button>
+  </div>
+
+  <div id="editPanel" style="display:none; margin-top:12px;">
+    <div class="row">
+      <input id="editDay" placeholder="יום המשחק" />
+      <input id="editLeague" placeholder="ליגה" />
+    </div>
+    <div class="row">
+      <input id="editHome" placeholder="קבוצת בית" />
+      <input id="editAway" placeholder="קבוצת חוץ" />
+    </div>
+
+    <div class="row">
+      <button id="btnEditSave" class="btn btn-success">שמור</button>
+      <button id="btnEditCancel" class="btn btn-ghost">בטל</button>
+    </div>
+    <div class="muted" style="margin-top:6px;">העריכה לא משנה את ה־ID של המשחק ולכן הניחושים נשמרים.</div>
+  </div>
+</div>
+
 </section>
 
 <!-- ===== האזור שמצטלם בדיוק כמו הטופס ===== -->
