@@ -315,7 +315,10 @@ async function initExpert() {
       guessStartAt: null,
       guessEndAt: null,
       guessClosed: false
-    });  // Open edit panel
+    });  
+    
+    
+    // Open edit panel
   btnEditOpen?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
