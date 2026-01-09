@@ -199,6 +199,9 @@ let formData = {
 let guessesByPlayer = {};
 let resultMode = false;
 
+// ✅ מצב עריכה
+let editingIndex = -1;
+
 let expertTimerInterval = null;
 let playerTimerInterval = null;
 
@@ -285,21 +288,31 @@ async function initExpert() {
   const newPlayerNameEl = document.getElementById("newPlayerName");
   const deletePlayerNameEl = document.getElementById("deletePlayerName");
 
-
-    // Edit row
-  const btnEditOpen = document.getElementById("btnEditOpen");
-  const btnEditSave = document.getElementById("btnEditSave");
-  const btnEditCancel = document.getElementById("btnEditCancel");
-
+  // ✅ עריכה
   const editIndexEl = document.getElementById("editIndex");
-  const editPanel = document.getElementById("editPanel");
-  const editDayEl = document.getElementById("editDay");
-  const editLeagueEl = document.getElementById("editLeague");
-  const editHomeEl = document.getElementById("editHome");
-  const editAwayEl = document.getElementById("editAway");
+  const btnLoadEdit = document.getElementById("btnLoadEdit");
+  const btnCancelEdit = document.getElementById("btnCancelEdit");
+  const editHint = document.getElementById("editHint");
 
-  let currentEditIdx = null;
+  const matchForm = document.getElementById("matchForm");
+  const submitBtn = document.getElementById("btnSubmitMatch") || matchForm?.querySelector('button[type="submit"]');
 
+  function setEditMode(idx) {
+    editingIndex = idx;
+    const on = idx >= 0;
+
+    if (submitBtn) {
+      submitBtn.textContent = on ? "💾 שמור עריכה" : "הוסף משחק";
+    }
+    if (btnCancelEdit) btnCancelEdit.disabled = !on;
+    if (editHint) editHint.style.display = on ? "block" : "none";
+  }
+
+  function resetEditMode() {
+    setEditMode(-1);
+    matchForm?.reset();
+    if (editIndexEl) editIndexEl.value = "";
+  }
 
   btnNew?.addEventListener("click", async () => {
     const newId = makeId(10);
@@ -320,65 +333,6 @@ async function initExpert() {
     const base = getBaseUrl();
     location.href = `${base}/expert.html?id=${newId}&admin=${encodeURIComponent(newAdminKey)}`;
   });
-
-    // Open edit panel
-  btnEditOpen?.addEventListener("click", async () => {
-    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
-
-    const n = Number(editIndexEl?.value);
-    if (!Number.isFinite(n) || n < 1 || n > formData.matches.length) {
-      return toast("מספר שורה לא תקין", "error");
-    }
-
-    currentEditIdx = n - 1;
-    const m = formData.matches[currentEditIdx];
-
-    editDayEl.value = m.day || "";
-    editLeagueEl.value = m.league || "";
-    editHomeEl.value = m.home || "";
-    editAwayEl.value = m.away || "";
-
-    editPanel.style.display = "block";
-    toast(`עריכת שורה #${n}`, "info");
-  });
-
-  // Cancel edit
-  btnEditCancel?.addEventListener("click", () => {
-    currentEditIdx = null;
-    if (editPanel) editPanel.style.display = "none";
-  });
-
-  // Save edit
-  btnEditSave?.addEventListener("click", async () => {
-    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
-    if (currentEditIdx === null) return toast("לא נבחרה שורה לעריכה", "warning");
-
-    const day = (editDayEl.value || "").trim();
-    const league = (editLeagueEl.value || "").trim();
-    const home = (editHomeEl.value || "").trim();
-    const away = (editAwayEl.value || "").trim();
-
-    if (!home || !away) return toast("קבוצת בית וחוץ חובה", "warning");
-
-    const matches = [...formData.matches];
-    const old = matches[currentEditIdx];
-
-    // חשוב: שומרים את ה-ID כדי שהניחושים הקיימים לא יימחקו
-    matches[currentEditIdx] = {
-      ...old,
-      day,
-      league,
-      home,
-      away
-    };
-
-    await updateDoc(formRef(), { matches });
-
-    toast("השורה עודכנה ✅", "success");
-    currentEditIdx = null;
-    if (editPanel) editPanel.style.display = "none";
-  });
-
 
   if (!formId) {
     if (linkInfo) linkInfo.textContent = "לחץ 'צור טופס חדש' כדי לקבל קישורים לשיתוף בוואטסאפ.";
@@ -406,6 +360,10 @@ async function initExpert() {
     if (btnCopyPlayers) btnCopyPlayers.disabled = false;
     if (btnStartGuess) btnStartGuess.disabled = false;
     if (btnStopGuess) btnStopGuess.disabled = false;
+
+    // ✅ עריכה
+    if (btnLoadEdit) btnLoadEdit.disabled = false;
+    if (btnCancelEdit) btnCancelEdit.disabled = true;
 
     if (btnCopyImage) {
       btnCopyImage.disabled = false;
@@ -446,24 +404,84 @@ async function initExpert() {
       guessEndEl.value = msToLocalDatetimeValue(formData.guessEndAt);
     }
 
+    // אם המשחקים השתנו והמיקום בעריכה כבר לא קיים
+    if (editingIndex >= formData.matches.length) {
+      resetEditMode();
+    }
+
     await loadAllGuesses();
-    renderExpertTable();        // ✅ כאן התיקון
+    renderExpertTable();
     renderTotalsOutside();
     renderExpertGuessStatus(guessStatus);
     startExpertTicker(guessStatus);
   });
 
-  const matchForm = document.getElementById("matchForm");
+  // ✅ טען שורה לעריכה -> ממלא את הטופס וה-submit הופך ל"שמור עריכה"
+  btnLoadEdit?.addEventListener("click", async () => {
+    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
+
+    const n = Number((editIndexEl?.value || "").trim());
+    if (!Number.isFinite(n) || n < 1 || n > formData.matches.length) {
+      return toast("מספר שורה לא תקין", "error");
+    }
+
+    const idx = n - 1;
+    const m = formData.matches[idx];
+    if (!m) return toast("שורה לא נמצאה", "error");
+
+    document.getElementById("day").value = m.day || "";
+    document.getElementById("league").value = m.league || "";
+    document.getElementById("home").value = m.home || "";
+    document.getElementById("away").value = m.away || "";
+
+    setEditMode(idx);
+    toast(`נטענה שורה ${n} לעריכה ✏️`, "success");
+  });
+
+  btnCancelEdit?.addEventListener("click", async () => {
+    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
+    resetEditMode();
+    toast("בוטלה עריכה", "info");
+  });
+
+  // ✅ submit: אם יש עריכה -> עדכון. אחרת -> הוספה רגילה
   matchForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
+    const day = document.getElementById("day").value.trim();
+    const league = document.getElementById("league").value.trim();
+    const home = document.getElementById("home").value.trim();
+    const away = document.getElementById("away").value.trim();
+
+    if (!day || !league || !home || !away) {
+      return toast("מלא את כל השדות", "warning");
+    }
+
+    // מצב עריכה
+    if (editingIndex >= 0) {
+      if (editingIndex >= formData.matches.length) {
+        resetEditMode();
+        return toast("השורה כבר לא קיימת (התעדכן). נסה שוב.", "error");
+      }
+
+      const matches = [...formData.matches];
+      const old = matches[editingIndex];
+
+      // שומרים את אותו id כדי לא לשבור ניחושים/תוצאות
+      matches[editingIndex] = { ...old, day, league, home, away };
+
+      await updateDoc(formRef(), { matches });
+      toast(`עודכנה שורה ${editingIndex + 1} ✅`, "success");
+
+      resetEditMode();
+      return;
+    }
+
+    // מצב הוספה רגיל
     const match = {
       id: makeId(12),
-      day: document.getElementById("day").value.trim(),
-      league: document.getElementById("league").value.trim(),
-      home: document.getElementById("home").value.trim(),
-      away: document.getElementById("away").value.trim()
+      day, league, home, away
     };
 
     const matches = [...formData.matches, match];
@@ -581,6 +599,10 @@ async function initExpert() {
     batch.update(formRef(), { matches, results });
     await batch.commit();
 
+    // אם מחקת שורה שנמצאת בעריכה – יוצאים מעריכה
+    if (editingIndex === idx) resetEditMode();
+    if (editingIndex > idx) editingIndex -= 1;
+
     document.getElementById("deleteIndex").value = "";
     toast("המשחק נמחק ✅", "success");
   });
@@ -603,6 +625,7 @@ async function initExpert() {
     });
 
     await batch.commit();
+    resetEditMode();
     toast("הטבלה נוקתה ✅", "success");
   });
 }
@@ -611,7 +634,9 @@ function disableExpertActions() {
   const ids = [
     "matchForm","btnDelete","btnClear","btnMode",
     "btnStartGuess","btnStopGuess","guessEnd",
-    "newPlayerName","btnAddPlayer","deletePlayerName","btnDeletePlayer"
+    "newPlayerName","btnAddPlayer","deletePlayerName","btnDeletePlayer",
+    // ✅ עריכה
+    "editIndex","btnLoadEdit","btnCancelEdit"
   ];
   ids.forEach(id => {
     const el = document.getElementById(id);
@@ -627,11 +652,17 @@ function enableExpertActions() {
 
   [
     "btnDelete","btnClear","guessEnd",
-    "newPlayerName","btnAddPlayer","deletePlayerName","btnDeletePlayer"
+    "newPlayerName","btnAddPlayer","deletePlayerName","btnDeletePlayer",
+    // ✅ עריכה
+    "editIndex","btnLoadEdit","btnCancelEdit"
   ].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.disabled = false;
   });
+
+  // ביטול עריכה מתחיל כבוי (רק כשנכנסים לעריכה נדליק)
+  const btnCancelEdit = document.getElementById("btnCancelEdit");
+  if (btnCancelEdit) btnCancelEdit.disabled = true;
 }
 
 async function isAdminOk() {
@@ -669,17 +700,15 @@ function startExpertTicker(el) {
 }
 
 /* =======================================================
-   ✅✅✅ זה החלק שתוקן לפי בקשתך:
-   - לא ממיינים בכלל
-   - rowspan ל"יום" רק לפי רצפים
-   - rowspan ל"ליגה" רק לפי רצפים
+   - no sorting
+   - rowspan by runs (sequences only)
    ======================================================= */
 function renderExpertTable() {
   const table = document.getElementById("mainTable");
   if (!table) return;
 
   const PLAYERS_ORDER = getPlayersOrder();
-  const matches = formData.matches || []; // ✅ שומר סדר הזנה
+  const matches = formData.matches || [];
   const results = formData.results || {};
 
   table.innerHTML = "";
@@ -695,7 +724,6 @@ function renderExpertTable() {
   `;
   table.appendChild(header);
 
-  // ✅ spans לפי רצפים בלבד
   const daySpanAt = buildRunSpans(matches, (m) => (m.day || "").trim());
   const leagueSpanAt = buildRunSpans(matches, (m) => (m.league || "").trim());
 
@@ -704,10 +732,8 @@ function renderExpertTable() {
 
     const tr = document.createElement("tr");
 
-    // #
     tr.insertAdjacentHTML("beforeend", `<td>${r + 1}</td>`);
 
-    // יום - רק בתחילת רצף
     if (daySpanAt[r]) {
       const tdDay = document.createElement("td");
       tdDay.textContent = m.day || "";
@@ -715,7 +741,6 @@ function renderExpertTable() {
       tr.appendChild(tdDay);
     }
 
-    // ליגה - רק בתחילת רצף
     if (leagueSpanAt[r]) {
       const tdLeague = document.createElement("td");
       tdLeague.textContent = m.league || "";
@@ -723,11 +748,9 @@ function renderExpertTable() {
       tr.appendChild(tdLeague);
     }
 
-    // בית/חוץ
     tr.insertAdjacentHTML("beforeend", `<td>${m.home || ""}</td>`);
     tr.insertAdjacentHTML("beforeend", `<td>${m.away || ""}</td>`);
 
-    // ניחושים
     PLAYERS_ORDER.forEach(player => {
       const matchId = m.id;
       const pick = guessesByPlayer[player]?.[matchId] || "";
@@ -797,10 +820,9 @@ function renderTotalsOutside() {
   });
   totalsTable.appendChild(colgroup);
 
-  // Row 1: player names above totals
   const namesRow = document.createElement("tr");
   const emptyTd = document.createElement("td");
-  emptyTd.colSpan = 5; // (#, day, league, home, away)
+  emptyTd.colSpan = 5;
   namesRow.appendChild(emptyTd);
 
   PLAYERS_ORDER.forEach(name => {
@@ -811,7 +833,6 @@ function renderTotalsOutside() {
   });
   totalsTable.appendChild(namesRow);
 
-  // Row 2: totals + winner highlight
   const totalsRow = document.createElement("tr");
   const labelTd = document.createElement("td");
   labelTd.className = "totals-label";

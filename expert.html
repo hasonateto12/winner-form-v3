@@ -45,22 +45,36 @@
       <input id="league" placeholder="ליגה" required />
       <input id="home" placeholder="קבוצת בית" required />
       <input id="away" placeholder="קבוצת חוץ" required />
-      <button type="submit" class="btn btn-primary">הוסף משחק</button>
+      <button id="btnSubmitMatch" type="submit" class="btn btn-primary">הוסף משחק</button>
     </form>
+    <div id="editHint" class="muted" style="display:none;">✏️ אתה במצב עריכה — לחץ “שמור עריכה” כדי לעדכן.</div>
   </div>
 </section>
 
-<!-- טיימר ניחושים -->
+<!-- ✏️ עריכת משחק -->
 <section class="card no-capture">
-  <div class="card-title">🕒 טיימר ניחושים</div>
+  <div class="card-title">✏️ עריכת משחק לפי מספר שורה</div>
   <div class="card-body">
-    <div class="timer-row">
-      <label class="muted">ניחושים עד:</label>
-      <input id="guessEnd" type="datetime-local" />
-      <button id="btnStartGuess" type="button" class="btn btn-primary" disabled>⏱ התחל זמן ניחושים</button>
-      <button id="btnStopGuess" type="button" class="btn btn-danger" disabled>⛔ עצור ניחושים עכשיו</button>
+    <div class="btn-row">
+      <input id="editIndex" type="number" min="1" placeholder="מספר שורה לעריכה" />
+      <button id="btnLoadEdit" type="button" class="btn btn-outline" disabled>📥 טען לעריכה</button>
+      <button id="btnCancelEdit" type="button" class="btn btn-ghost" disabled>ביטול עריכה</button>
     </div>
-    <div id="guessStatus" class="muted" style="margin-top:10px;">ניחושים עדיין לא התחילו.</div>
+    <div class="muted">טען שורה → הנתונים ייכנסו לטופס “הוספת משחק” → הכפתור יהפוך ל-“שמור עריכה”.</div>
+  </div>
+</section>
+
+<!-- מחיקה וניקוי -->
+<section class="card no-capture">
+  <div class="card-title">🧹 מחיקות</div>
+  <div class="card-body">
+    <div class="btn-row">
+      <input id="deleteIndex" type="number" min="1" placeholder="מספר שורה למחיקה" />
+      <button id="btnDelete" type="button" class="btn btn-danger" disabled>🗑 מחק משחק</button>
+      <button id="btnClear" type="button" class="btn btn-danger" disabled>🧨 נקה את כל הטבלה</button>
+      <button id="btnMode" type="button" class="btn btn-outline" disabled>✅ מצב חישוב נקודות (כבוי)</button>
+    </div>
+    <div class="muted">במצב חישוב נקודות: לחץ על תא של שחקן כדי לסמן/לבטל ירוק.</div>
   </div>
 </section>
 
@@ -84,44 +98,18 @@
   </div>
 </section>
 
-<!-- מחיקה וניקוי -->
+<!-- טיימר ניחושים -->
 <section class="card no-capture">
-  <div class="card-title">🧹 מחיקות</div>
+  <div class="card-title">🕒 טיימר ניחושים</div>
   <div class="card-body">
-    <div class="btn-row">
-      <input id="deleteIndex" type="number" min="1" placeholder="מספר שורה למחיקה" />
-      <button id="btnDelete" type="button" class="btn btn-danger" disabled>🗑 מחק משחק</button>
-      <button id="btnClear" type="button" class="btn btn-danger" disabled>🧨 נקה את כל הטבלה</button>
-      <button id="btnMode" type="button" class="btn btn-outline" disabled>✅ מצב חישוב נקודות (כבוי)</button>
+    <div class="timer-row">
+      <label class="muted">ניחושים עד:</label>
+      <input id="guessEnd" type="datetime-local" />
+      <button id="btnStartGuess" type="button" class="btn btn-primary" disabled>⏱ התחל זמן ניחושים</button>
+      <button id="btnStopGuess" type="button" class="btn btn-danger" disabled>⛔ עצור ניחושים עכשיו</button>
     </div>
-    <div class="muted">במצב חישוב נקודות: לחץ על תא של שחקן כדי לסמן/לבטל ירוק.</div>
+    <div id="guessStatus" class="muted" style="margin-top:10px;">ניחושים עדיין לא התחילו.</div>
   </div>
-
-  <div class="card">
-  <h3>✏️ עריכת שורה</h3>
-  <div class="row">
-    <input id="editIndex" type="number" min="1" placeholder="מספר שורה לעריכה" />
-    <button id="btnEditOpen" class="btn btn-primary">פתח עריכה</button>
-  </div>
-
-  <div id="editPanel" style="display:none; margin-top:12px;">
-    <div class="row">
-      <input id="editDay" placeholder="יום המשחק" />
-      <input id="editLeague" placeholder="ליגה" />
-    </div>
-    <div class="row">
-      <input id="editHome" placeholder="קבוצת בית" />
-      <input id="editAway" placeholder="קבוצת חוץ" />
-    </div>
-
-    <div class="row">
-      <button id="btnEditSave" class="btn btn-success">שמור</button>
-      <button id="btnEditCancel" class="btn btn-ghost">בטל</button>
-    </div>
-    <div class="muted" style="margin-top:6px;">העריכה לא משנה את ה־ID של המשחק ולכן הניחושים נשמרים.</div>
-  </div>
-</div>
-
 </section>
 
 <!-- ===== האזור שמצטלם בדיוק כמו הטופס ===== -->
