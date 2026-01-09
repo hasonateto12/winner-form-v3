@@ -188,6 +188,7 @@ let isPlayerPage = !!document.getElementById("playerTable");
 let formData = {
   matches: [],
   results: {},
+  finalResults: {},
   players: DEFAULT_PLAYERS.slice(),
   createdAt: 0,
   guessStartAt: null,
@@ -196,7 +197,6 @@ let formData = {
 };
 
 let guessesByPlayer = {};
-let resultMode = false;
 
 // ✅ עריכה נפרדת
 let editingIndex = -1;
@@ -270,8 +270,6 @@ async function initExpert() {
   const btnCopyPlayers = document.getElementById("btnCopyPlayers");
   const btnCopyImage = document.getElementById("btnCopyImage");
   const linkInfo = document.getElementById("linkInfo");
-
-  const btnMode = document.getElementById("btnMode");
   const btnDelete = document.getElementById("btnDelete");
   const btnClear = document.getElementById("btnClear");
 
@@ -333,6 +331,7 @@ async function initExpert() {
       adminHash: newAdminHash,
       matches: [],
       results: {},
+  finalResults: {},
       players: DEFAULT_PLAYERS.slice(),
       createdAt: Date.now(),
       guessStartAt: null,
@@ -366,8 +365,6 @@ async function initExpert() {
     exitEditMode();
   } else {
     enableExpertActions();
-
-    if (btnMode) btnMode.disabled = false;
     if (btnCopyExpert) btnCopyExpert.disabled = false;
     if (btnCopyPlayers) btnCopyPlayers.disabled = false;
     if (btnStartGuess) btnStartGuess.disabled = false;
@@ -402,8 +399,8 @@ async function initExpert() {
     const d = s.data();
 
     formData.matches = Array.isArray(d.matches) ? d.matches : [];
-    formData.results = (d.results && typeof d.results === "object") ? d.results : {};
-    formData.players = Array.isArray(d.players) ? d.players : DEFAULT_PLAYERS.slice();
+        formData.results = (d.results && typeof d.results === "object") ? d.results : {};
+    formData.finalResults = (d.finalResults && typeof d.finalResults === "object") ? d.finalResults : {};
 
     formData.guessStartAt = d.guessStartAt ?? null;
     formData.guessEndAt = d.guessEndAt ?? null;
@@ -421,6 +418,7 @@ async function initExpert() {
     }
 
     await loadAllGuesses();
+    renderResultsTable();
     renderExpertTable();
     renderTotalsOutside();
     renderExpertGuessStatus(guessStatus);
@@ -510,12 +508,6 @@ async function initExpert() {
     toast(`עודכנה שורה ${editingIndex + 1} ✅`, "success");
     exitEditMode();
   });
-
-  btnMode?.addEventListener("click", async () => {
-    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
-    resultMode = !resultMode;
-    btnMode.textContent = resultMode ? "✅ מצב חישוב נקודות (פעיל)" : "✅ מצב חישוב נקודות (כבוי)";
-    toast(resultMode ? "מצב חישוב הופעל" : "מצב חישוב כובה", "info");
   });
 
   btnAddPlayer?.addEventListener("click", async () => {
@@ -603,8 +595,9 @@ async function initExpert() {
     const removed = formData.matches[idx];
     const matches = formData.matches.filter((_, i) => i !== idx);
 
-    const results = { ...(formData.results || {}) };
-    if (removed?.id && results[removed.id]) delete results[removed.id];
+    const results = { ...(formData.results || {}) }; // legacy, not used
+    const finalResults = { ...(formData.finalResults || {}) };
+    if (removed?.id && finalResults[removed.id] !== undefined) delete finalResults[removed.id];
 
     const batch = writeBatch(db);
     const snaps = await getDocs(guessesColRef());
@@ -617,7 +610,7 @@ async function initExpert() {
       }
     });
 
-    batch.update(formRef(), { matches, results });
+    batch.update(formRef(), { matches, results, finalResults });
     await batch.commit();
 
     // אם מחקת שורה שנמצאת בעריכה
@@ -639,6 +632,7 @@ async function initExpert() {
     batch.update(formRef(), {
       matches: [],
       results: {},
+  finalResults: {},
       players: DEFAULT_PLAYERS.slice(),
       guessStartAt: null,
       guessEndAt: null,
@@ -653,7 +647,7 @@ async function initExpert() {
 
 function disableExpertActions() {
   const ids = [
-    "matchForm","btnDelete","btnClear","btnMode",
+    "matchForm","btnDelete","btnClear",
     "btnStartGuess","btnStopGuess","guessEnd",
     "newPlayerName","btnAddPlayer","deletePlayerName","btnDeletePlayer",
     // עריכה
@@ -726,6 +720,67 @@ function startExpertTicker(el) {
    - no sorting
    - rowspan by runs (sequences only)
    ======================================================= */
+
+function renderResultsTable() {
+  const table = document.getElementById("resultsTable");
+  if (!table) return;
+
+  const matches = formData.matches || [];
+  const finals = formData.finalResults || {};
+
+  table.innerHTML = "";
+
+  const header = document.createElement("tr");
+  header.innerHTML = `<th>תוצאה</th>`;
+  table.appendChild(header);
+
+  // האם יש הרשאת מומחה? אם לא - רק תצוגה
+  const canEditPromise = isExpertPage ? isAdminOk() : Promise.resolve(false);
+
+  canEditPromise.then((canEdit) => {
+    // בונים מחדש אחרי שיודעים הרשאה
+    table.innerHTML = "";
+    table.appendChild(header);
+
+    matches.forEach((m) => {
+      const mid = m.id;
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+
+      if (canEdit) {
+        const sel = document.createElement("select");
+        sel.setAttribute("data-mid", mid);
+        sel.innerHTML = `
+          <option value=""></option>
+          <option value="1">1</option>
+          <option value="X">X</option>
+          <option value="2">2</option>
+        `;
+        sel.value = finals[mid] || "";
+
+        sel.addEventListener("change", async () => {
+          if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
+          const next = sel.value || "";
+
+          const updated = { ...(formData.finalResults || {}) };
+          if (!next) delete updated[mid];
+          else updated[mid] = next;
+
+          await updateDoc(formRef(), { finalResults: updated });
+          toast("התוצאה עודכנה ✅", "success", 1600);
+        });
+
+        td.appendChild(sel);
+      } else {
+        td.textContent = finals[mid] || "";
+      }
+
+      tr.appendChild(td);
+      table.appendChild(tr);
+    });
+  });
+}
+
 function renderExpertTable() {
   const table = document.getElementById("mainTable");
   if (!table) return;
@@ -776,19 +831,12 @@ function renderExpertTable() {
     PLAYERS_ORDER.forEach(player => {
       const matchId = m.id;
       const pick = guessesByPlayer[player]?.[matchId] || "";
-      const isGreen = !!results?.[matchId]?.[player];
+      const finalRes = formData.finalResults?.[matchId] || "";
+      const isGreen = !!finalRes && pick === finalRes;
 
       const td = document.createElement("td");
       td.textContent = pick;
-      td.style.cursor = "pointer";
       if (isGreen) td.style.background = "#b6fcb6";
-
-      td.addEventListener("click", async () => {
-        if (!resultMode) return;
-        if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
-        await toggleGreen(matchId, player);
-      });
-
       tr.appendChild(td);
     });
 
@@ -796,16 +844,6 @@ function renderExpertTable() {
   }
 }
 
-async function toggleGreen(matchId, player) {
-  const current = (formData.results && typeof formData.results === "object") ? formData.results : {};
-  const results = JSON.parse(JSON.stringify(current));
-
-  results[matchId] = results[matchId] || {};
-  if (results[matchId][player]) delete results[matchId][player];
-  else results[matchId][player] = true;
-
-  await updateDoc(formRef(), { results });
-}
 
 /* ===== Totals outside table (aligned widths) ===== */
 function renderTotalsOutside() {
@@ -814,14 +852,19 @@ function renderTotalsOutside() {
   if (!totalsTable || !mainTable) return;
 
   const PLAYERS_ORDER = getPlayersOrder();
-  const results = formData.results || {};
+  const finals = formData.finalResults || {};
 
   const totals = {};
   PLAYERS_ORDER.forEach(p => totals[p] = 0);
 
-  Object.keys(results).forEach(matchId => {
+  const matches = formData.matches || [];
+  matches.forEach(m => {
+    const mid = m.id;
+    const res = finals[mid];
+    if (!res) return;
     PLAYERS_ORDER.forEach(p => {
-      if (results?.[matchId]?.[p]) totals[p]++;
+      const pick = guessesByPlayer[p]?.[mid] || "";
+      if (pick && pick === res) totals[p]++;
     });
   });
 

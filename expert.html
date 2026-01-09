@@ -82,8 +82,7 @@
       <input id="deleteIndex" type="number" min="1" placeholder="מספר שורה למחיקה" />
       <button id="btnDelete" type="button" class="btn btn-danger" disabled>🗑 מחק משחק</button>
       <button id="btnClear" type="button" class="btn btn-danger" disabled>🧨 נקה את כל הטבלה</button>
-      <button id="btnMode" type="button" class="btn btn-outline" disabled>✅ מצב חישוב נקודות (כבוי)</button>
-    </div>
+      </div>
     <div class="muted"></div>
   </div>
 </section>
@@ -126,8 +125,14 @@
 <section id="captureArea" class="capture-area">
   <h2 class="capture-title">טבלת משחקים</h2>
 
-  <div class="table-wrap">
-    <table id="mainTable"></table>
+  <div class="tables-row">
+    <div class="table-wrap results-wrap">
+      <table id="resultsTable"></table>
+    </div>
+
+    <div class="table-wrap">
+      <table id="mainTable"></table>
+    </div>
   </div>
 
   <div class="table-wrap totals-wrap">
