@@ -38,7 +38,7 @@
 
 <!-- הוספת משחק -->
 <section class="card no-capture">
-  <div class="card-title">➕ הוספת משחק</div>
+  <div class="card-title">➕ הוספת משחק לטבלה</div>
   <div class="card-body">
     <form id="matchForm" class="form-grid">
       <input id="day" placeholder="יום המשחק" required />
@@ -50,9 +50,32 @@
   </div>
 </section>
 
+<!-- ✏️ עריכת משחק (נפרד מהוספה) -->
+<section class="card no-capture" id="editCard">
+  <div class="card-title">✏️ עריכת משחק בטבלה</div>
+  <div class="card-body">
+
+    <div class="btn-row">
+      <input id="editIndex" type="number" min="1" placeholder="מספר שורה לעריכה" />
+      <button id="btnLoadEdit" type="button" class="btn btn-outline" disabled>📥 טען לעריכה</button>
+      <button id="btnCancelEdit" type="button" class="btn btn-ghost" disabled>ביטול</button>
+    </div>
+
+    <form id="editForm" class="form-grid">
+      <input id="editDay" placeholder="יום המשחק" required />
+      <input id="editLeague" placeholder="ליגה" required />
+      <input id="editHome" placeholder="קבוצת בית" required />
+      <input id="editAway" placeholder="קבוצת חוץ" required />
+      <button id="btnSaveEdit" type="submit" class="btn btn-primary" disabled>💾 שמור עריכה</button>
+    </form>
+
+    <div class="muted"></div>
+  </div>
+</section>
+
 <!-- מחיקה וניקוי -->
 <section class="card no-capture">
-  <div class="card-title">🧹 מחיקות</div>
+  <div class="card-title">🧹 מחיקת משחק בטבלה</div>
   <div class="card-body">
     <div class="btn-row">
       <input id="deleteIndex" type="number" min="1" placeholder="מספר שורה למחיקה" />
@@ -60,7 +83,7 @@
       <button id="btnClear" type="button" class="btn btn-danger" disabled>🧨 נקה את כל הטבלה</button>
       <button id="btnMode" type="button" class="btn btn-outline" disabled>✅ מצב חישוב נקודות (כבוי)</button>
     </div>
-    <div class="muted">במצב חישוב נקודות: לחץ על תא של שחקן כדי לסמן/לבטל ירוק.</div>
+    <div class="muted"></div>
   </div>
 </section>
 
@@ -79,7 +102,7 @@
         <button id="btnDeletePlayer" type="button" class="btn btn-danger" disabled>🗑 מחק שחקן</button>
       </div>
 
-      <div class="muted">* שחקנים חדשים נכנסים אחרי שמעון.</div>
+      <div class="muted"></div>
     </div>
   </div>
 </section>
@@ -100,17 +123,10 @@
 
 <!-- ===== האזור שמצטלם בדיוק כמו הטופס ===== -->
 <section id="captureArea" class="capture-area">
-  <h2 class="capture-title">טבלת משחקים + ניחושים</h2>
+  <h2 class="capture-title">טבלת משחקים</h2>
 
-  <!-- שתי טבלאות זו לצד זו: תוצאות + טבלה ראשית -->
-  <div class="tables-row">
-    <div class="results-wrap">
-      <table id="resultsTable"></table>
-    </div>
-
-    <div class="table-wrap">
-      <table id="mainTable"></table>
-    </div>
+  <div class="table-wrap">
+    <table id="mainTable"></table>
   </div>
 
   <div class="table-wrap totals-wrap">
