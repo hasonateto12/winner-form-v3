@@ -123,17 +123,39 @@ async function copyCaptureAreaImage() {
     return toast("html2canvas לא נטען. בדוק שיש סקריפט ב-expert.html", "error");
   }
 
-  toast("מכין תמונה כמו הטופס…", "info", 1400);
+  toast("מכין תמונה מלאה…", "info", 1400);
 
+  // מצב צילום (מסתיר כפתורים וכו')
   document.body.classList.add("capture-mode");
 
   const prevScrollY = window.scrollY;
   const prevScrollX = window.scrollX;
-  window.scrollTo(0, 0);
-  await new Promise(r => setTimeout(r, 140));
 
-  const fullWidth = area.scrollWidth;
-  const fullHeight = area.scrollHeight;
+  // ✅ טריק חשוב: לבטל overflow בזמן צילום כדי שלא ייחתך
+  const wraps = Array.from(area.querySelectorAll(".table-wrap"));
+  const prevWrapOverflow = wraps.map(w => w.style.overflow);
+  wraps.forEach(w => (w.style.overflow = "visible"));
+
+  const prevAreaWidth = area.style.width;
+  const prevAreaMaxWidth = area.style.maxWidth;
+  const prevAreaOverflow = area.style.overflow;
+
+  area.style.overflow = "visible";
+  area.style.maxWidth = "none";
+
+  // תן לדפדפן רגע לחשב layout מחדש
+  window.scrollTo(0, 0);
+  await new Promise(r => setTimeout(r, 180));
+
+  // ✅ קח את המידות האמיתיות של כל התוכן
+  const fullWidth = Math.max(area.scrollWidth, area.offsetWidth);
+  const fullHeight = Math.max(area.scrollHeight, area.offsetHeight);
+
+  // הרחבה זמנית כדי ש-html2canvas יראה את הכל
+  area.style.width = fullWidth + "px";
+
+  // עוד רגע לסידור
+  await new Promise(r => setTimeout(r, 120));
 
   const canvas = await window.html2canvas(area, {
     backgroundColor: "#ffffff",
@@ -147,6 +169,13 @@ async function copyCaptureAreaImage() {
     scrollX: 0,
     scrollY: 0
   });
+
+  // ✅ להחזיר את הסטיילים חזרה
+  area.style.width = prevAreaWidth;
+  area.style.maxWidth = prevAreaMaxWidth;
+  area.style.overflow = prevAreaOverflow;
+
+  wraps.forEach((w, i) => (w.style.overflow = prevWrapOverflow[i] || ""));
 
   document.body.classList.remove("capture-mode");
   window.scrollTo(prevScrollX, prevScrollY);
@@ -168,12 +197,14 @@ async function copyCaptureAreaImage() {
     }
   } catch (_) {}
 
+  // fallback: הורדה
   const link = document.createElement("a");
   link.download = `winner-table-${formId || "form"}.png`;
   link.href = dataUrl;
   link.click();
   toast("התמונה נשמרה ✅", "success", 2600);
 }
+
 
 /* =========================
    Global state
