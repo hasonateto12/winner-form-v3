@@ -197,8 +197,6 @@ let formData = {
 };
 
 let guessesByPlayer = {};
-
-// ✅ עריכה נפרדת
 let editingIndex = -1;
 
 let expertTimerInterval = null;
@@ -319,7 +317,6 @@ async function initExpert() {
     if (editIndexEl) editIndexEl.value = "";
   }
 
-  // מתחיל כבוי עד שטוענים שורה
   setEditEnabled(false);
 
   btnNew?.addEventListener("click", async () => {
@@ -331,7 +328,7 @@ async function initExpert() {
       adminHash: newAdminHash,
       matches: [],
       results: {},
-  finalResults: {},
+      finalResults: {},
       players: DEFAULT_PLAYERS.slice(),
       createdAt: Date.now(),
       guessStartAt: null,
@@ -361,7 +358,6 @@ async function initExpert() {
     if (linkInfo) linkInfo.textContent = "⚠️ חסר/לא נכון מפתח מומחה בקישור. פתח את קישור המומחה המקורי.";
     disableExpertActions();
     if (btnCopyImage) btnCopyImage.disabled = true;
-    // גם עריכה נשארת כבויה
     exitEditMode();
   } else {
     enableExpertActions();
@@ -370,7 +366,6 @@ async function initExpert() {
     if (btnStartGuess) btnStartGuess.disabled = false;
     if (btnStopGuess) btnStopGuess.disabled = false;
 
-    // ✅ מאפשרים טעינה לעריכה
     if (btnLoadEdit) btnLoadEdit.disabled = false;
 
     if (btnCopyImage) {
@@ -399,7 +394,7 @@ async function initExpert() {
     const d = s.data();
 
     formData.matches = Array.isArray(d.matches) ? d.matches : [];
-        formData.results = (d.results && typeof d.results === "object") ? d.results : {};
+    formData.results = (d.results && typeof d.results === "object") ? d.results : {};
     formData.finalResults = (d.finalResults && typeof d.finalResults === "object") ? d.finalResults : {};
 
     formData.guessStartAt = d.guessStartAt ?? null;
@@ -412,7 +407,6 @@ async function initExpert() {
       guessEndEl.value = msToLocalDatetimeValue(formData.guessEndAt);
     }
 
-    // אם עריכה פתוחה והשורה נעלמה (מחיקה/ניקוי)
     if (editingIndex >= formData.matches.length) {
       exitEditMode();
     }
@@ -425,7 +419,6 @@ async function initExpert() {
     startExpertTicker(guessStatus);
   });
 
-  // ✅ הוספת משחק (נשאר רגיל)
   const matchForm = document.getElementById("matchForm");
   matchForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -445,7 +438,6 @@ async function initExpert() {
     toast("משחק נוסף ✅", "success");
   });
 
-  // ✅ טען לעריכה
   btnLoadEdit?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
@@ -465,21 +457,18 @@ async function initExpert() {
     if (editAway) editAway.value = m.away || "";
 
     setEditEnabled(true);
-
-    // אופציונלי: גלילה לכרטיס העריכה
     editCard?.scrollIntoView({ behavior: "smooth", block: "start" });
 
     toast(`נטענה שורה ${n} לעריכה ✏️`, "success");
   });
 
-  // ✅ ביטול עריכה
   btnCancelEdit?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
     exitEditMode();
     toast("בוטלה עריכה", "info");
   });
 
-  // ✅ שמור עריכה (מתוך editForm)
+  // ✅ כאן התיקון המרכזי: אין יותר `};` אחרי זה
   editForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
@@ -499,8 +488,6 @@ async function initExpert() {
 
     const matches = [...formData.matches];
     const old = matches[editingIndex];
-
-    // חשוב: משאירים אותו id כדי לא לשבור ניחושים/תוצאות
     matches[editingIndex] = { ...old, day, league, home, away };
 
     await updateDoc(formRef(), { matches });
@@ -508,8 +495,8 @@ async function initExpert() {
     toast(`עודכנה שורה ${editingIndex + 1} ✅`, "success");
     exitEditMode();
   });
-  };
 
+  // ✅ הוספת שחקן — עכשיו זה בתוך initExpert ולכן יעבוד
   btnAddPlayer?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
@@ -595,7 +582,7 @@ async function initExpert() {
     const removed = formData.matches[idx];
     const matches = formData.matches.filter((_, i) => i !== idx);
 
-    const results = { ...(formData.results || {}) }; // legacy, not used
+    const results = { ...(formData.results || {}) };
     const finalResults = { ...(formData.finalResults || {}) };
     if (removed?.id && finalResults[removed.id] !== undefined) delete finalResults[removed.id];
 
@@ -613,7 +600,6 @@ async function initExpert() {
     batch.update(formRef(), { matches, results, finalResults });
     await batch.commit();
 
-    // אם מחקת שורה שנמצאת בעריכה
     if (editingIndex === idx) exitEditMode();
     if (editingIndex > idx) editingIndex -= 1;
 
@@ -632,7 +618,7 @@ async function initExpert() {
     batch.update(formRef(), {
       matches: [],
       results: {},
-  finalResults: {},
+      finalResults: {},
       players: DEFAULT_PLAYERS.slice(),
       guessStartAt: null,
       guessEndAt: null,
@@ -644,13 +630,13 @@ async function initExpert() {
     toast("הטבלה נוקתה ✅", "success");
   });
 
+} // ✅ סוף initExpert — כאן ורק כאן!
 
 function disableExpertActions() {
   const ids = [
     "matchForm","btnDelete","btnClear",
     "btnStartGuess","btnStopGuess","guessEnd",
     "newPlayerName","btnAddPlayer","deletePlayerName","btnDeletePlayer",
-    // עריכה
     "editIndex","btnLoadEdit","btnCancelEdit","editForm","btnSaveEdit","editDay","editLeague","editHome","editAway"
   ];
   ids.forEach(id => {
@@ -668,14 +654,12 @@ function enableExpertActions() {
   [
     "btnDelete","btnClear","guessEnd",
     "newPlayerName","btnAddPlayer","deletePlayerName","btnDeletePlayer",
-    // עריכה
     "editIndex","btnLoadEdit"
   ].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.disabled = false;
   });
 
-  // שדות העריכה עצמם נשארים נעולים עד שטוענים שורה
   ["btnCancelEdit","btnSaveEdit","editDay","editLeague","editHome","editAway"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.disabled = true;
@@ -717,10 +701,8 @@ function startExpertTicker(el) {
 }
 
 /* =======================================================
-   - no sorting
-   - rowspan by runs (sequences only)
+   Results + Table + Totals
    ======================================================= */
-
 function renderResultsTable() {
   const table = document.getElementById("resultsTable");
   if (!table) return;
@@ -734,11 +716,9 @@ function renderResultsTable() {
   header.innerHTML = `<th>תוצאה</th>`;
   table.appendChild(header);
 
-  // האם יש הרשאת מומחה? אם לא - רק תצוגה
   const canEditPromise = isExpertPage ? isAdminOk() : Promise.resolve(false);
 
   canEditPromise.then((canEdit) => {
-    // בונים מחדש אחרי שיודעים הרשאה
     table.innerHTML = "";
     table.appendChild(header);
 
@@ -787,7 +767,6 @@ function renderExpertTable() {
 
   const PLAYERS_ORDER = getPlayersOrder();
   const matches = formData.matches || [];
-  const results = formData.results || {};
 
   table.innerHTML = "";
 
@@ -844,8 +823,6 @@ function renderExpertTable() {
   }
 }
 
-
-/* ===== Totals outside table (aligned widths) ===== */
 function renderTotalsOutside() {
   const totalsTable = document.getElementById("totalsTable");
   const mainTable = document.getElementById("mainTable");
