@@ -487,19 +487,26 @@ onSnapshot(formRef(), async (s) => {
 
   // ✅ הוספת שחקן — עכשיו זה בתוך initExpert ולכן יעבוד
   btnAddPlayer?.addEventListener("click", async () => {
-    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
+  if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
-    const name = (newPlayerNameEl?.value || "").trim();
-    if (!name) return toast("הכנס שם שחקן", "warning");
+  const name = (newPlayerNameEl?.value || "").trim();
+  if (!name) return toast("הכנס שם שחקן", "warning");
 
-    const current = Array.isArray(formData.players) ? [...formData.players] : DEFAULT_PLAYERS.slice();
-    if (current.includes(name)) return toast("השם כבר קיים", "warning");
+  const current = Array.isArray(formData.players) ? [...formData.players] : DEFAULT_PLAYERS.slice();
+  if (current.includes(name)) return toast("השם כבר קיים", "warning");
 
-    current.push(name);
-    await updateDoc(formRef(), { players: current });
-    if (newPlayerNameEl) newPlayerNameEl.value = "";
-    toast("שחקן נוסף ✅", "success");
-  });
+  current.push(name);
+  await updateDoc(formRef(), { players: current });
+
+  // ✅ תוספת חשובה: שיופיע מיד בטבלה בעמוד המומחה
+  formData.players = current;
+  renderExpertTable();
+  renderTotalsOutside();
+
+  if (newPlayerNameEl) newPlayerNameEl.value = "";
+  toast("שחקן נוסף ✅", "success");
+});
+
 
   btnDeletePlayer?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
