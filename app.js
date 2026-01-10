@@ -389,35 +389,24 @@ async function initExpert() {
     btnCopyPlayers?.addEventListener("click", () => copyText(playersUrl));
   }
 
-  onSnapshot(formRef(), async (s) => {
-    if (!s.exists()) return;
-    const d = s.data();
+onSnapshot(formRef(), async (s) => {
+  if (!s.exists()) return;
+  const d = s.data();
 
-    formData.matches = Array.isArray(d.matches) ? d.matches : [];
-    formData.results = (d.results && typeof d.results === "object") ? d.results : {};
-    formData.finalResults = (d.finalResults && typeof d.finalResults === "object") ? d.finalResults : {};
+  formData.matches = Array.isArray(d.matches) ? d.matches : [];
+  formData.results = (d.results && typeof d.results === "object") ? d.results : {};
+  formData.finalResults = (d.finalResults && typeof d.finalResults === "object") ? d.finalResults : {};
 
-    formData.guessStartAt = d.guessStartAt ?? null;
-    formData.guessEndAt = d.guessEndAt ?? null;
-    formData.guessClosed = !!d.guessClosed;
+  // ✅ זה התיקון
+  formData.players = Array.isArray(d.players) ? d.players : DEFAULT_PLAYERS.slice();
 
-    adminHash = d.adminHash || adminHash;
+  
+  await loadAllGuesses();
+  renderResultsTable();
+  renderExpertTable();
+  renderTotalsOutside();
+});
 
-    if (guessEndEl && formData.guessEndAt) {
-      guessEndEl.value = msToLocalDatetimeValue(formData.guessEndAt);
-    }
-
-    if (editingIndex >= formData.matches.length) {
-      exitEditMode();
-    }
-
-    await loadAllGuesses();
-    renderResultsTable();
-    renderExpertTable();
-    renderTotalsOutside();
-    renderExpertGuessStatus(guessStatus);
-    startExpertTicker(guessStatus);
-  });
 
   const matchForm = document.getElementById("matchForm");
   matchForm?.addEventListener("submit", async (e) => {
