@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -22,6 +23,35 @@
   </div>
 </header>
 
+<nav class="tabs no-capture">
+  <div class="tabs-inner">
+    <button id="tabBtnTable" type="button" class="tab-btn active">🧾 טבלה</button>
+    <button id="tabBtnData" type="button" class="tab-btn">📝 הזנת נתונים</button>
+  </div>
+</nav>
+
+<main class="tab-panels">
+  <section id="tabTable" class="tab-panel active">
+<section id="captureArea" class="capture-area">
+  <h2 class="capture-title">טבלת משחקים</h2>
+
+  <div class="tables-row">
+    <div class="table-wrap results-wrap">
+      <table id="resultsTable"></table>
+    </div>
+
+    <div class="table-wrap">
+      <table id="mainTable"></table>
+    </div>
+  </div>
+
+  <div class="table-wrap totals-wrap">
+    <table id="totalsTable"></table>
+  </div>
+</section>
+  </section>
+
+  <section id="tabData" class="tab-panel">
 <!-- קישורים לשיתוף -->
 <section class="card no-capture">
   <div class="card-title">🔗 קישורים לשיתוף</div>
@@ -121,23 +151,11 @@
 </section>
 
 <!-- ===== האזור שמצטלם בדיוק כמו הטופס ===== -->
-<section id="captureArea" class="capture-area">
-  <h2 class="capture-title">טבלת משחקים</h2>
 
-  <div class="tables-row">
-    <div class="table-wrap results-wrap">
-      <table id="resultsTable"></table>
-    </div>
 
-    <div class="table-wrap">
-      <table id="mainTable"></table>
-    </div>
-  </div>
 
-  <div class="table-wrap totals-wrap">
-    <table id="totalsTable"></table>
-  </div>
-</section>
+  </section>
+</main>
 
 <div id="toastHost" class="toast-host no-capture"></div>
 

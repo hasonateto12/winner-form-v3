@@ -330,3 +330,38 @@ body[data-theme="dark"] .toast{
     width:90px;
   }
 }
+
+
+/* ===== Tabs (Expert) ===== */
+.tabs{
+  max-width:1200px;
+  margin:0 auto;
+  padding:0 16px 10px 16px;
+}
+.tabs-inner{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.tab-btn{
+  padding:10px 14px;
+  border:1px solid rgba(0,0,0,.18);
+  background:var(--card);
+  color:var(--text);
+  font-weight:800;
+  cursor:pointer;
+  border-radius:999px;
+  box-shadow:var(--shadow);
+}
+body[data-theme="dark"] .tab-btn{
+  border:1px solid rgba(255,255,255,.18);
+}
+.tab-btn.active{
+  background:var(--primary);
+  color:#fff;
+  border-color:transparent;
+}
+
+.tab-panels{ padding-bottom:24px; }
+.tab-panel{ display:none; }
+.tab-panel.active{ display:block; }

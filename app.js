@@ -48,10 +48,43 @@ function initThemeToggle() {
     setTheme(next);
     toast(next === "dark" ? "עברנו למצב כהה" : "עברנו למצב בהיר", "success");
   });
+
+
+/* =========================
+   UI: Tabs (Expert page)
+   ========================= */
+function initTabs() {
+  const btnTable = document.getElementById("tabBtnTable");
+  const btnData  = document.getElementById("tabBtnData");
+  const panelTable = document.getElementById("tabTable");
+  const panelData  = document.getElementById("tabData");
+
+  // Tabs exist only in expert.html (after your requested update)
+  if (!btnTable || !btnData || !panelTable || !panelData) return;
+
+  const setActive = (tab) => {
+    const isTable = tab === "table";
+    btnTable.classList.toggle("active", isTable);
+    btnData.classList.toggle("active", !isTable);
+
+    panelTable.classList.toggle("active", isTable);
+    panelData.classList.toggle("active", !isTable);
+
+    localStorage.setItem("expert_active_tab", tab);
+  };
+
+  // default: table. user can switch to data entry tab.
+  const saved = localStorage.getItem("expert_active_tab");
+  setActive(saved === "data" ? "data" : "table");
+
+  btnTable.addEventListener("click", () => setActive("table"));
+  btnData.addEventListener("click", () => setActive("data"));
+}
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   initThemeToggle();
+  initTabs();
 });
 
 /* =========================
