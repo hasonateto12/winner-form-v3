@@ -118,65 +118,79 @@ function formatMs(ms) {
 async function copyCaptureAreaImage() {
   const area = document.getElementById("captureArea");
   if (!area) return toast("לא נמצא אזור צילום", "error");
+  if (!window.html2canvas) return toast("html2canvas לא נטען", "error");
 
-  if (!window.html2canvas) {
-    return toast("html2canvas לא נטען. בדוק שיש סקריפט ב-expert.html", "error");
-  }
-
-  toast("מכין תמונה מלאה…", "info", 1400);
+  toast("מכין תמונה מלאה כמו במסך…", "info", 1400);
 
   // מצב צילום (מסתיר כפתורים וכו')
   document.body.classList.add("capture-mode");
 
   const prevScrollY = window.scrollY;
   const prevScrollX = window.scrollX;
-
-  // ✅ טריק חשוב: לבטל overflow בזמן צילום כדי שלא ייחתך
-  const wraps = Array.from(area.querySelectorAll(".table-wrap"));
-  const prevWrapOverflow = wraps.map(w => w.style.overflow);
-  wraps.forEach(w => (w.style.overflow = "visible"));
-
-  const prevAreaWidth = area.style.width;
-  const prevAreaMaxWidth = area.style.maxWidth;
-  const prevAreaOverflow = area.style.overflow;
-
-  area.style.overflow = "visible";
-  area.style.maxWidth = "none";
-
-  // תן לדפדפן רגע לחשב layout מחדש
   window.scrollTo(0, 0);
-  await new Promise(r => setTimeout(r, 180));
-
-  // ✅ קח את המידות האמיתיות של כל התוכן
-  const fullWidth = Math.max(area.scrollWidth, area.offsetWidth);
-  const fullHeight = Math.max(area.scrollHeight, area.offsetHeight);
-
-  // הרחבה זמנית כדי ש-html2canvas יראה את הכל
-  area.style.width = fullWidth + "px";
-
-  // עוד רגע לסידור
   await new Promise(r => setTimeout(r, 120));
 
-  const canvas = await window.html2canvas(area, {
+  // ✅ מידות אמיתיות של כל התוכן
+  const fullW = area.scrollWidth;
+  const fullH = area.scrollHeight;
+
+  // ✅ רוצים שהתמונה תצא ברוחב מסך (כמו zoom-out בטלפון)
+  const viewportW = Math.min(document.documentElement.clientWidth, window.innerWidth || 360);
+  const padding = 8; // קצת שוליים
+  const targetW = Math.max(280, viewportW - padding * 2);
+
+  // scale שיכניס את הכל לרוחב המסך
+  const fitScale = Math.min(1, targetW / fullW);
+  const targetH = Math.ceil(fullH * fitScale);
+
+  // ✅ יוצרים "סטודיו צילום" זמני
+  const stage = document.createElement("div");
+  stage.style.position = "fixed";
+  stage.style.left = "0";
+  stage.style.top = "0";
+  stage.style.width = targetW + "px";
+  stage.style.height = targetH + "px";
+  stage.style.background = "#fff";
+  stage.style.zIndex = "999999";
+  stage.style.overflow = "hidden";
+  stage.style.padding = "0";
+  stage.style.margin = "0";
+
+  // משכפלים את אזור הצילום כדי לא לשבור את הדף
+  const clone = area.cloneNode(true);
+
+  // ✅ חשוב: להעלים גלילות פנימיות כדי שיראו את הכל
+  clone.querySelectorAll(".table-wrap").forEach(w => (w.style.overflow = "visible"));
+  clone.style.overflow = "visible";
+  clone.style.maxWidth = "none";
+  clone.style.width = fullW + "px";
+
+  // ✅ מקטינים כמו zoom-out
+  clone.style.transformOrigin = "top left";
+  clone.style.transform = `scale(${fitScale})`;
+
+  stage.appendChild(clone);
+  document.body.appendChild(stage);
+
+  // תן רגע ל-layout
+  await new Promise(r => setTimeout(r, 140));
+
+  // ✅ מצלמים את ה-stage שהוא כבר מוקטן למסך
+  const canvas = await window.html2canvas(stage, {
     backgroundColor: "#ffffff",
     scale: 2,
     useCORS: true,
     allowTaint: true,
-    width: fullWidth,
-    height: fullHeight,
-    windowWidth: fullWidth,
-    windowHeight: fullHeight,
+    width: targetW,
+    height: targetH,
+    windowWidth: targetW,
+    windowHeight: targetH,
     scrollX: 0,
     scrollY: 0
   });
 
-  // ✅ להחזיר את הסטיילים חזרה
-  area.style.width = prevAreaWidth;
-  area.style.maxWidth = prevAreaMaxWidth;
-  area.style.overflow = prevAreaOverflow;
-
-  wraps.forEach((w, i) => (w.style.overflow = prevWrapOverflow[i] || ""));
-
+  // ניקוי
+  stage.remove();
   document.body.classList.remove("capture-mode");
   window.scrollTo(prevScrollX, prevScrollY);
 
@@ -197,13 +211,13 @@ async function copyCaptureAreaImage() {
     }
   } catch (_) {}
 
-  // fallback: הורדה
   const link = document.createElement("a");
   link.download = `winner-table-${formId || "form"}.png`;
   link.href = dataUrl;
   link.click();
   toast("התמונה נשמרה ✅", "success", 2600);
 }
+
 
 
 /* =========================
