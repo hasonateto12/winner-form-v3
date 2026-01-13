@@ -93,7 +93,7 @@ function initDataEntryToggle() {
 /* =========================
    PLAYERS
    ========================= */
-const DEFAULT_PLAYERS = ["חגי","ראזי","סעיד","ווסים","צביר","שמעון"];
+const DEFAULT_PLAYERS = ["חגי","ראזי","סעיד","ווסים","אביאל","צביר","שמעון"];
 
 function getPlayersOrder() {
   const arr = Array.isArray(formData.players) ? formData.players : DEFAULT_PLAYERS;
