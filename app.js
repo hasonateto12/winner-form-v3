@@ -51,11 +51,9 @@ function initThemeToggle() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-initThemeToggle();
-
+  initThemeToggle();
   initDataEntryToggle();
 });
-
 
 function initDataEntryToggle() {
   const openBtn = document.getElementById("btnOpenDataEntry");
@@ -68,7 +66,6 @@ function initDataEntryToggle() {
     panel.classList.add("is-open");
     openBtn.setAttribute("aria-expanded", "true");
     panel.setAttribute("aria-hidden", "false");
-    // גלילה עדינה לפאנל כשהוא נפתח
     panel.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -76,7 +73,6 @@ function initDataEntryToggle() {
     panel.classList.remove("is-open");
     openBtn.setAttribute("aria-expanded", "false");
     panel.setAttribute("aria-hidden", "true");
-    // חזרה לטבלאות
     const capture = document.getElementById("captureArea");
     if (capture) capture.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -84,7 +80,6 @@ function initDataEntryToggle() {
   openBtn.addEventListener("click", open);
   closeBtn.addEventListener("click", close);
 
-  // סגירה עם ESC
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && panel.classList.contains("is-open")) close();
   });
@@ -100,6 +95,36 @@ function getPlayersOrder() {
   const fixed = DEFAULT_PLAYERS.filter(p => arr.includes(p));
   const extras = arr.filter(p => !DEFAULT_PLAYERS.includes(p));
   return [...fixed, ...extras];
+}
+
+/* =========================
+   ✅ NEW: Populate delete-player control (Select or Input+Autocomplete)
+   ========================= */
+function populateDeletePlayerControl() {
+  const el = document.getElementById("deletePlayerName");
+  if (!el) return;
+
+  const players = getPlayersOrder();
+
+  // If it's a SELECT, fill options
+  if (el.tagName === "SELECT") {
+    const currentVal = el.value;
+    el.innerHTML =
+      `<option value="">בחר שחקן למחיקה</option>` +
+      players.map(p => `<option value="${p}">${p}</option>`).join("");
+    if (players.includes(currentVal)) el.value = currentVal;
+    return;
+  }
+
+  // Otherwise assume INPUT: add datalist for autocomplete
+  let dl = document.getElementById("deletePlayersList");
+  if (!dl) {
+    dl = document.createElement("datalist");
+    dl.id = "deletePlayersList";
+    document.body.appendChild(dl);
+    el.setAttribute("list", dl.id);
+  }
+  dl.innerHTML = players.map(p => `<option value="${p}"></option>`).join("");
 }
 
 /* =========================
@@ -147,7 +172,6 @@ function formatMs(ms) {
   const s = String(total % 60).padStart(2,"0");
   return `${h}:${m}:${s}`;
 }
-
 
 /* =========================
    Global state
@@ -363,24 +387,25 @@ async function initExpert() {
     btnCopyPlayers?.addEventListener("click", () => copyText(playersUrl));
   }
 
-onSnapshot(formRef(), async (s) => {
-  if (!s.exists()) return;
-  const d = s.data();
+  onSnapshot(formRef(), async (s) => {
+    if (!s.exists()) return;
+    const d = s.data();
 
-  formData.matches = Array.isArray(d.matches) ? d.matches : [];
-  formData.results = (d.results && typeof d.results === "object") ? d.results : {};
-  formData.finalResults = (d.finalResults && typeof d.finalResults === "object") ? d.finalResults : {};
+    formData.matches = Array.isArray(d.matches) ? d.matches : [];
+    formData.results = (d.results && typeof d.results === "object") ? d.results : {};
+    formData.finalResults = (d.finalResults && typeof d.finalResults === "object") ? d.finalResults : {};
 
-  // ✅ זה התיקון
-  formData.players = Array.isArray(d.players) ? d.players : DEFAULT_PLAYERS.slice();
+    // ✅ זה התיקון
+    formData.players = Array.isArray(d.players) ? d.players : DEFAULT_PLAYERS.slice();
 
-  
-  await loadAllGuesses();
-  renderResultsTable();
-  renderExpertTable();
-  renderTotalsOutside();
-});
+    // ✅ NEW: refresh delete control so you can delete גם שחקן קבוע בלי הקלדה
+    populateDeletePlayerControl();
 
+    await loadAllGuesses();
+    renderResultsTable();
+    renderExpertTable();
+    renderTotalsOutside();
+  });
 
   const matchForm = document.getElementById("matchForm");
   matchForm?.addEventListener("submit", async (e) => {
@@ -431,7 +456,6 @@ onSnapshot(formRef(), async (s) => {
     toast("בוטלה עריכה", "info");
   });
 
-  // ✅ כאן התיקון המרכזי: אין יותר `};` אחרי זה
   editForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
@@ -459,34 +483,36 @@ onSnapshot(formRef(), async (s) => {
     exitEditMode();
   });
 
-  // ✅ הוספת שחקן — עכשיו זה בתוך initExpert ולכן יעבוד
   btnAddPlayer?.addEventListener("click", async () => {
-  if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
+    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
-  const name = (newPlayerNameEl?.value || "").trim();
-  if (!name) return toast("הכנס שם שחקן", "warning");
+    const name = (newPlayerNameEl?.value || "").trim();
+    if (!name) return toast("הכנס שם שחקן", "warning");
 
-  const current = Array.isArray(formData.players) ? [...formData.players] : DEFAULT_PLAYERS.slice();
-  if (current.includes(name)) return toast("השם כבר קיים", "warning");
+    const current = Array.isArray(formData.players) ? [...formData.players] : DEFAULT_PLAYERS.slice();
+    if (current.includes(name)) return toast("השם כבר קיים", "warning");
 
-  current.push(name);
-  await updateDoc(formRef(), { players: current });
+    current.push(name);
+    await updateDoc(formRef(), { players: current });
 
-  // ✅ תוספת חשובה: שיופיע מיד בטבלה בעמוד המומחה
-  formData.players = current;
-  renderExpertTable();
-  renderTotalsOutside();
+    formData.players = current;
+    renderExpertTable();
+    renderTotalsOutside();
 
-  if (newPlayerNameEl) newPlayerNameEl.value = "";
-  toast("שחקן נוסף ✅", "success");
-});
+    // ✅ NEW
+    populateDeletePlayerControl();
 
+    if (newPlayerNameEl) newPlayerNameEl.value = "";
+    toast("שחקן נוסף ✅", "success");
+  });
 
   btnDeletePlayer?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
     const name = (deletePlayerNameEl?.value || "").trim();
-    if (!name) return toast("כתוב שם למחיקה", "warning");
+    if (!name) return toast("בחר/כתוב שם למחיקה", "warning");
+
+    if (!confirm(`למחוק את "${name}" וכל הניחושים שלו?`)) return;
 
     const current = Array.isArray(formData.players) ? [...formData.players] : DEFAULT_PLAYERS.slice();
     if (!current.includes(name)) return toast("שם לא נמצא", "error");
@@ -505,6 +531,11 @@ onSnapshot(formRef(), async (s) => {
     await batch.commit();
 
     if (deletePlayerNameEl) deletePlayerNameEl.value = "";
+
+    // ✅ NEW
+    formData.players = updatedPlayers;
+    populateDeletePlayerControl();
+
     toast("שחקן נמחק ✅", "success");
   });
 
@@ -595,6 +626,11 @@ onSnapshot(formRef(), async (s) => {
 
     await batch.commit();
     exitEditMode();
+
+    // ✅ NEW
+    formData.players = DEFAULT_PLAYERS.slice();
+    populateDeletePlayerControl();
+
     toast("הטבלה נוקתה ✅", "success");
   });
 
@@ -1018,3 +1054,9 @@ function fillPlayerPicks(picks) {
     sel.value = picks?.[mid] || "";
   });
 }
+
+/* =========================================================
+   ⚠️ NOTE:
+   הקוד שלך כנראה ממשיך אחרי זה (למשל copyCaptureAreaImage וכו')
+   אם יש לך עוד שורות בקובץ — הדבק לי אותן ואחזיר לך קובץ שלם 100%.
+   ========================================================= */
