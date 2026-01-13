@@ -488,8 +488,6 @@ onSnapshot(formRef(), async (s) => {
     const name = (deletePlayerNameEl?.value || "").trim();
     if (!name) return toast("כתוב שם למחיקה", "warning");
 
-    if (DEFAULT_PLAYERS.includes(name)) return toast("אי אפשר למחוק שחקן קבוע", "error");
-
     const current = Array.isArray(formData.players) ? [...formData.players] : DEFAULT_PLAYERS.slice();
     if (!current.includes(name)) return toast("שם לא נמצא", "error");
 
