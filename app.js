@@ -51,9 +51,11 @@ function initThemeToggle() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  initThemeToggle();
+initThemeToggle();
+
   initDataEntryToggle();
 });
+
 
 function initDataEntryToggle() {
   const openBtn = document.getElementById("btnOpenDataEntry");
@@ -66,6 +68,7 @@ function initDataEntryToggle() {
     panel.classList.add("is-open");
     openBtn.setAttribute("aria-expanded", "true");
     panel.setAttribute("aria-hidden", "false");
+    // גלילה עדינה לפאנל כשהוא נפתח
     panel.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -73,6 +76,7 @@ function initDataEntryToggle() {
     panel.classList.remove("is-open");
     openBtn.setAttribute("aria-expanded", "false");
     panel.setAttribute("aria-hidden", "true");
+    // חזרה לטבלאות
     const capture = document.getElementById("captureArea");
     if (capture) capture.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -80,6 +84,7 @@ function initDataEntryToggle() {
   openBtn.addEventListener("click", open);
   closeBtn.addEventListener("click", close);
 
+  // סגירה עם ESC
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && panel.classList.contains("is-open")) close();
   });
@@ -88,62 +93,19 @@ function initDataEntryToggle() {
 /* =========================
    PLAYERS
    ========================= */
-const DEFAULT_PLAYERS = ["חגי", "ראזי", "סעיד", "ווסים", "אביאל", "צביר", "שמעון"];
+const DEFAULT_PLAYERS = ["חגי","ראזי","סעיד","ווסים","צביר","שמעון"];
 
 function getPlayersOrder() {
   const arr = Array.isArray(formData.players) ? formData.players : DEFAULT_PLAYERS;
-  const fixed = DEFAULT_PLAYERS.filter((p) => arr.includes(p));
-  const extras = arr.filter((p) => !DEFAULT_PLAYERS.includes(p));
+  const fixed = DEFAULT_PLAYERS.filter(p => arr.includes(p));
+  const extras = arr.filter(p => !DEFAULT_PLAYERS.includes(p));
   return [...fixed, ...extras];
-}
-
-/* =========================
-   ✅ NEW: Normalize player names + match existing name reliably
-   ========================= */
-function normName(s) {
-  return String(s || "").replace(/\s+/g, " ").trim();
-}
-function findExistingPlayerName(playersArr, inputName) {
-  const target = normName(inputName);
-  return (playersArr || []).find((p) => normName(p) === target) || "";
-}
-
-/* =========================
-   ✅ NEW: Populate delete-player control (Select or Input+Autocomplete)
-   ========================= */
-function populateDeletePlayerControl() {
-  const el = document.getElementById("deletePlayerName");
-  if (!el) return;
-
-  const players = getPlayersOrder();
-
-  // If it's a SELECT, fill options
-  if (el.tagName === "SELECT") {
-    const currentVal = el.value;
-    el.innerHTML =
-      `<option value="">בחר שחקן למחיקה</option>` +
-      players.map((p) => `<option value="${p}">${p}</option>`).join("");
-    if (players.includes(currentVal)) el.value = currentVal;
-    return;
-  }
-
-  // Otherwise assume INPUT: add datalist for autocomplete
-  let dl = document.getElementById("deletePlayersList");
-  if (!dl) {
-    dl = document.createElement("datalist");
-    dl.id = "deletePlayersList";
-    document.body.appendChild(dl);
-    el.setAttribute("list", dl.id);
-  }
-  dl.innerHTML = players.map((p) => `<option value="${p}"></option>`).join("");
 }
 
 /* =========================
    Helpers
    ========================= */
-function qs() {
-  return new URLSearchParams(location.search);
-}
+function qs() { return new URLSearchParams(location.search); }
 
 function getBaseUrl() {
   const pathParts = location.pathname.split("/").filter(Boolean);
@@ -155,21 +117,19 @@ function getBaseUrl() {
 function makeId(len = 8) {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
   let s = "";
-  for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  for (let i=0;i<len;i++) s += chars[Math.floor(Math.random()*chars.length)];
   return s;
 }
 function makeKey(len = 20) {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let s = "";
-  for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  for (let i=0;i<len;i++) s += chars[Math.floor(Math.random()*chars.length)];
   return s;
 }
 async function sha256(text) {
   const enc = new TextEncoder().encode(text);
   const hash = await crypto.subtle.digest("SHA-256", enc);
-  return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,"0")).join("");
 }
 async function copyText(t) {
   try {
@@ -182,11 +142,12 @@ async function copyText(t) {
 function formatMs(ms) {
   if (ms <= 0) return "00:00:00";
   const total = Math.floor(ms / 1000);
-  const h = String(Math.floor(total / 3600)).padStart(2, "0");
-  const m = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
-  const s = String(total % 60).padStart(2, "0");
+  const h = String(Math.floor(total / 3600)).padStart(2,"0");
+  const m = String(Math.floor((total % 3600) / 60)).padStart(2,"0");
+  const s = String(total % 60).padStart(2,"0");
   return `${h}:${m}:${s}`;
 }
+
 
 /* =========================
    Global state
@@ -218,15 +179,9 @@ let playerTimerInterval = null;
 /* =========================
    Firestore paths
    ========================= */
-function formRef() {
-  return doc(db, "forms", formId);
-}
-function guessesColRef() {
-  return collection(db, "forms", formId, "guesses");
-}
-function guessDocRef(player) {
-  return doc(db, "forms", formId, "guesses", player);
-}
+function formRef() { return doc(db, "forms", formId); }
+function guessesColRef() { return collection(db, "forms", formId, "guesses"); }
+function guessDocRef(player) { return doc(db, "forms", formId, "guesses", player); }
 
 /* =========================
    INIT
@@ -244,9 +199,7 @@ function localDatetimeValueToMs(v) {
 function msToLocalDatetimeValue(ms) {
   const d = new Date(ms);
   const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-    d.getHours()
-  )}:${pad(d.getMinutes())}`;
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 /* =========================
@@ -276,7 +229,7 @@ function buildRunSpans(list, keyFn) {
     const key = keyFn(list[i]);
     let j = i + 1;
     while (j < list.length && keyFn(list[j]) === key) j++;
-    spans[i] = j - i;
+    spans[i] = (j - i);
     i = j;
   }
   return spans;
@@ -293,9 +246,9 @@ async function initExpert() {
   const btnClear = document.getElementById("btnClear");
 
   const btnStartGuess = document.getElementById("btnStartGuess");
-  const btnStopGuess = document.getElementById("btnStopGuess");
-  const guessStatus = document.getElementById("guessStatus");
-  const guessEndEl = document.getElementById("guessEnd");
+  const btnStopGuess  = document.getElementById("btnStopGuess");
+  const guessStatus   = document.getElementById("guessStatus");
+  const guessEndEl    = document.getElementById("guessEnd");
 
   const btnAddPlayer = document.getElementById("btnAddPlayer");
   const btnDeletePlayer = document.getElementById("btnDeletePlayer");
@@ -389,16 +342,13 @@ async function initExpert() {
 
     if (btnLoadEdit) btnLoadEdit.disabled = false;
 
-    // אם קיימת אצלך הפונקציה הזו בקובץ/בקטע אחר - זה יעבוד.
     if (btnCopyImage) {
       btnCopyImage.disabled = false;
-      if (typeof copyCaptureAreaImage === "function") {
-        btnCopyImage.addEventListener("click", copyCaptureAreaImage);
-      }
+      btnCopyImage.addEventListener("click", copyCaptureAreaImage);
     }
 
     const base = getBaseUrl();
-    const expertUrl = `${base}/expert.html?id=${formId}&admin=${encodeURIComponent(adminKey)}`;
+    const expertUrl  = `${base}/expert.html?id=${formId}&admin=${encodeURIComponent(adminKey)}`;
     const playersUrl = `${base}/player.html?id=${formId}`;
 
     if (linkInfo) {
@@ -413,25 +363,24 @@ async function initExpert() {
     btnCopyPlayers?.addEventListener("click", () => copyText(playersUrl));
   }
 
-  onSnapshot(formRef(), async (s) => {
-    if (!s.exists()) return;
-    const d = s.data();
+onSnapshot(formRef(), async (s) => {
+  if (!s.exists()) return;
+  const d = s.data();
 
-    formData.matches = Array.isArray(d.matches) ? d.matches : [];
-    formData.results = d.results && typeof d.results === "object" ? d.results : {};
-    formData.finalResults = d.finalResults && typeof d.finalResults === "object" ? d.finalResults : {};
-    formData.players = Array.isArray(d.players) ? d.players : DEFAULT_PLAYERS.slice();
+  formData.matches = Array.isArray(d.matches) ? d.matches : [];
+  formData.results = (d.results && typeof d.results === "object") ? d.results : {};
+  formData.finalResults = (d.finalResults && typeof d.finalResults === "object") ? d.finalResults : {};
 
-    populateDeletePlayerControl();
+  // ✅ זה התיקון
+  formData.players = Array.isArray(d.players) ? d.players : DEFAULT_PLAYERS.slice();
 
-    await loadAllGuesses();
-    renderResultsTable();
-    renderExpertTable();
-    renderTotalsOutside();
+  
+  await loadAllGuesses();
+  renderResultsTable();
+  renderExpertTable();
+  renderTotalsOutside();
+});
 
-    renderExpertGuessStatus(guessStatus);
-    startExpertTicker(guessStatus);
-  });
 
   const matchForm = document.getElementById("matchForm");
   matchForm?.addEventListener("submit", async (e) => {
@@ -482,6 +431,7 @@ async function initExpert() {
     toast("בוטלה עריכה", "info");
   });
 
+  // ✅ כאן התיקון המרכזי: אין יותר `};` אחרי זה
   editForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
@@ -509,59 +459,52 @@ async function initExpert() {
     exitEditMode();
   });
 
+  // ✅ הוספת שחקן — עכשיו זה בתוך initExpert ולכן יעבוד
   btnAddPlayer?.addEventListener("click", async () => {
-    if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
+  if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
-    const name = normName(newPlayerNameEl?.value || "");
-    if (!name) return toast("הכנס שם שחקן", "warning");
+  const name = (newPlayerNameEl?.value || "").trim();
+  if (!name) return toast("הכנס שם שחקן", "warning");
 
-    const current = Array.isArray(formData.players) ? [...formData.players] : DEFAULT_PLAYERS.slice();
-    const exists = current.some((p) => normName(p) === name);
-    if (exists) return toast("השם כבר קיים", "warning");
+  const current = Array.isArray(formData.players) ? [...formData.players] : DEFAULT_PLAYERS.slice();
+  if (current.includes(name)) return toast("השם כבר קיים", "warning");
 
-    current.push(name);
-    await updateDoc(formRef(), { players: current });
+  current.push(name);
+  await updateDoc(formRef(), { players: current });
 
-    formData.players = current;
-    populateDeletePlayerControl();
-    renderExpertTable();
-    renderTotalsOutside();
+  // ✅ תוספת חשובה: שיופיע מיד בטבלה בעמוד המומחה
+  formData.players = current;
+  renderExpertTable();
+  renderTotalsOutside();
 
-    if (newPlayerNameEl) newPlayerNameEl.value = "";
-    toast("שחקן נוסף ✅", "success");
-  });
+  if (newPlayerNameEl) newPlayerNameEl.value = "";
+  toast("שחקן נוסף ✅", "success");
+});
 
-  /* ✅✅ DELETE PLAYER (works also for DEFAULT players) */
+
   btnDeletePlayer?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
-    const raw = deletePlayerNameEl?.value || "";
-    const nameInput = normName(raw);
-    if (!nameInput) return toast("בחר/כתוב שם למחיקה", "warning");
+    const name = (deletePlayerNameEl?.value || "").trim();
+    if (!name) return toast("כתוב שם למחיקה", "warning");
+
+    if (DEFAULT_PLAYERS.includes(name)) return toast("אי אפשר למחוק שחקן קבוע", "error");
 
     const current = Array.isArray(formData.players) ? [...formData.players] : DEFAULT_PLAYERS.slice();
-    const realName = findExistingPlayerName(current, nameInput);
-    if (!realName) return toast("השם לא נמצא ברשימה (בדוק רווחים/כתיב)", "error");
+    if (!current.includes(name)) return toast("שם לא נמצא", "error");
 
-    if (!confirm(`למחוק את "${realName}" וכל הניחושים שלו?`)) return;
-
-    const updatedPlayers = current.filter((p) => normName(p) !== normName(realName));
+    const updatedPlayers = current.filter(p => p !== name);
 
     const results = JSON.parse(JSON.stringify(formData.results || {}));
-    Object.keys(results).forEach((mid) => {
-      if (results[mid]?.[realName]) delete results[mid][realName];
+    Object.keys(results).forEach(mid => {
+      if (results[mid]?.[name]) delete results[mid][name];
       if (results[mid] && Object.keys(results[mid]).length === 0) delete results[mid];
     });
 
     const batch = writeBatch(db);
     batch.update(formRef(), { players: updatedPlayers, results });
-    batch.delete(guessDocRef(realName));
+    batch.delete(guessDocRef(name));
     await batch.commit();
-
-    formData.players = updatedPlayers;
-    populateDeletePlayerControl();
-    renderExpertTable();
-    renderTotalsOutside();
 
     if (deletePlayerNameEl) deletePlayerNameEl.value = "";
     toast("שחקן נמחק ✅", "success");
@@ -615,7 +558,7 @@ async function initExpert() {
 
     const batch = writeBatch(db);
     const snaps = await getDocs(guessesColRef());
-    snaps.forEach((gs) => {
+    snaps.forEach(gs => {
       const data = gs.data() || {};
       const picks = data.picks || {};
       if (removed?.id && picks[removed.id] !== undefined) {
@@ -640,7 +583,7 @@ async function initExpert() {
 
     const snaps = await getDocs(guessesColRef());
     const batch = writeBatch(db);
-    snaps.forEach((gs) => batch.delete(gs.ref));
+    snaps.forEach(gs => batch.delete(gs.ref));
 
     batch.update(formRef(), {
       matches: [],
@@ -654,64 +597,40 @@ async function initExpert() {
 
     await batch.commit();
     exitEditMode();
-
-    formData.players = DEFAULT_PLAYERS.slice();
-    populateDeletePlayerControl();
-
     toast("הטבלה נוקתה ✅", "success");
   });
-} // ✅ סוף initExpert
+
+} // ✅ סוף initExpert — כאן ורק כאן!
 
 function disableExpertActions() {
   const ids = [
-    "matchForm",
-    "btnDelete",
-    "btnClear",
-    "btnStartGuess",
-    "btnStopGuess",
-    "guessEnd",
-    "newPlayerName",
-    "btnAddPlayer",
-    "deletePlayerName",
-    "btnDeletePlayer",
-    "editIndex",
-    "btnLoadEdit",
-    "btnCancelEdit",
-    "editForm",
-    "btnSaveEdit",
-    "editDay",
-    "editLeague",
-    "editHome",
-    "editAway"
+    "matchForm","btnDelete","btnClear",
+    "btnStartGuess","btnStopGuess","guessEnd",
+    "newPlayerName","btnAddPlayer","deletePlayerName","btnDeletePlayer",
+    "editIndex","btnLoadEdit","btnCancelEdit","editForm","btnSaveEdit","editDay","editLeague","editHome","editAway"
   ];
-  ids.forEach((id) => {
+  ids.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (el.tagName === "FORM") el.querySelectorAll("input,button,select").forEach((x) => (x.disabled = true));
+    if (el.tagName === "FORM") el.querySelectorAll("input,button,select").forEach(x => x.disabled = true);
     else el.disabled = true;
   });
 }
 
 function enableExpertActions() {
   const form = document.getElementById("matchForm");
-  if (form) form.querySelectorAll("input,button,select").forEach((x) => (x.disabled = false));
+  if (form) form.querySelectorAll("input,button,select").forEach(x => x.disabled = false);
 
   [
-    "btnDelete",
-    "btnClear",
-    "guessEnd",
-    "newPlayerName",
-    "btnAddPlayer",
-    "deletePlayerName",
-    "btnDeletePlayer",
-    "editIndex",
-    "btnLoadEdit"
-  ].forEach((id) => {
+    "btnDelete","btnClear","guessEnd",
+    "newPlayerName","btnAddPlayer","deletePlayerName","btnDeletePlayer",
+    "editIndex","btnLoadEdit"
+  ].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.disabled = false;
   });
 
-  ["btnCancelEdit", "btnSaveEdit", "editDay", "editLeague", "editHome", "editAway"].forEach((id) => {
+  ["btnCancelEdit","btnSaveEdit","editDay","editLeague","editHome","editAway"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.disabled = true;
   });
@@ -730,7 +649,7 @@ async function isAdminOk() {
 async function loadAllGuesses() {
   guessesByPlayer = {};
   const snaps = await getDocs(guessesColRef());
-  snaps.forEach((s) => {
+  snaps.forEach(s => {
     const player = s.id;
     const data = s.data() || {};
     guessesByPlayer[player] = data.picks || {};
@@ -828,7 +747,7 @@ function renderExpertTable() {
     <th>ליגה</th>
     <th>קבוצת בית</th>
     <th>קבוצת חוץ</th>
-    ${PLAYERS_ORDER.map((p) => `<th>${p}</th>`).join("")}
+    ${PLAYERS_ORDER.map(p => `<th>${p}</th>`).join("")}
   `;
   table.appendChild(header);
 
@@ -858,7 +777,7 @@ function renderExpertTable() {
     tr.insertAdjacentHTML("beforeend", `<td>${m.home || ""}</td>`);
     tr.insertAdjacentHTML("beforeend", `<td>${m.away || ""}</td>`);
 
-    PLAYERS_ORDER.forEach((player) => {
+    PLAYERS_ORDER.forEach(player => {
       const matchId = m.id;
       const pick = guessesByPlayer[player]?.[matchId] || "";
       const finalRes = formData.finalResults?.[matchId] || "";
@@ -883,20 +802,20 @@ function renderTotalsOutside() {
   const finals = formData.finalResults || {};
 
   const totals = {};
-  PLAYERS_ORDER.forEach((p) => (totals[p] = 0));
+  PLAYERS_ORDER.forEach(p => totals[p] = 0);
 
   const matches = formData.matches || [];
-  matches.forEach((m) => {
+  matches.forEach(m => {
     const mid = m.id;
     const res = finals[mid];
     if (!res) return;
-    PLAYERS_ORDER.forEach((p) => {
+    PLAYERS_ORDER.forEach(p => {
       const pick = guessesByPlayer[p]?.[mid] || "";
       if (pick && pick === res) totals[p]++;
     });
   });
 
-  const values = PLAYERS_ORDER.map((p) => totals[p] || 0);
+  const values = PLAYERS_ORDER.map(p => totals[p] || 0);
   const max = values.length ? Math.max(...values) : 0;
 
   totalsTable.innerHTML = "";
@@ -906,7 +825,7 @@ function renderTotalsOutside() {
 
   const ths = Array.from(mainHeader.children);
   const colgroup = document.createElement("colgroup");
-  ths.forEach((th) => {
+  ths.forEach(th => {
     const col = document.createElement("col");
     col.style.width = `${th.getBoundingClientRect().width}px`;
     colgroup.appendChild(col);
@@ -918,7 +837,7 @@ function renderTotalsOutside() {
   emptyTd.colSpan = 5;
   namesRow.appendChild(emptyTd);
 
-  PLAYERS_ORDER.forEach((name) => {
+  PLAYERS_ORDER.forEach(name => {
     const td = document.createElement("td");
     td.textContent = name;
     td.style.fontWeight = "700";
@@ -930,10 +849,10 @@ function renderTotalsOutside() {
   const labelTd = document.createElement("td");
   labelTd.className = "totals-label";
   labelTd.colSpan = 5;
-  labelTd.textContent = "סה״כ ניחושים";
+  labelTd.textContent = 'סה״כ ניחושים';
   totalsRow.appendChild(labelTd);
 
-  PLAYERS_ORDER.forEach((p) => {
+  PLAYERS_ORDER.forEach(p => {
     const td = document.createElement("td");
     const val = totals[p] || 0;
 
@@ -989,7 +908,7 @@ async function initPlayer() {
     if (info) info.textContent = `נבחר: ${name}`;
 
     const snap = await getDoc(guessDocRef(name));
-    const picks = snap.exists() ? snap.data().picks || {} : {};
+    const picks = snap.exists() ? (snap.data().picks || {}) : {};
     fillPlayerPicks(picks);
   });
 
@@ -1001,7 +920,7 @@ async function initPlayer() {
     if (gs.state !== "running") return toast("הניחושים סגורים/לא התחילו", "error");
 
     const picks = {};
-    document.querySelectorAll("select[data-mid]").forEach((sel) => {
+    document.querySelectorAll("select[data-mid]").forEach(sel => {
       const mid = sel.getAttribute("data-mid");
       const val = sel.value;
       if (val) picks[mid] = val;
@@ -1019,8 +938,8 @@ function populatePlayersDropdown() {
   const currentVal = sel.value;
   const players = getPlayersOrder();
 
-  sel.innerHTML =
-    `<option value="">בחר שחקן</option>` + players.map((p) => `<option value="${p}">${p}</option>`).join("");
+  sel.innerHTML = `<option value="">בחר שחקן</option>` +
+    players.map(p => `<option value="${p}">${p}</option>`).join("");
 
   if (players.includes(currentVal)) sel.value = currentVal;
 }
@@ -1031,7 +950,7 @@ function renderPlayerTimer(el, btnSave) {
 
   const selects = document.querySelectorAll("select[data-mid]");
   const disableAll = (flag) => {
-    selects.forEach((s) => (s.disabled = flag));
+    selects.forEach(s => s.disabled = flag);
     if (btnSave) btnSave.disabled = flag;
   };
 
@@ -1096,7 +1015,7 @@ function renderPlayerTable() {
 }
 
 function fillPlayerPicks(picks) {
-  document.querySelectorAll("select[data-mid]").forEach((sel) => {
+  document.querySelectorAll("select[data-mid]").forEach(sel => {
     const mid = sel.getAttribute("data-mid");
     sel.value = picks?.[mid] || "";
   });
