@@ -165,12 +165,14 @@ body[data-theme="dark"] .btn-ghost{
   font-size:26px;
 }
 
-/* רווח לבן בצד שמאל כמו הטופס */
+/* בלי רווחים בצדדים – הטבלאות צמודות */
 .table-wrap{
   width:100%;
-  padding-left:120px;
+  padding-left:0;
+  padding-right:0;
   box-sizing:border-box;
 }
+
 
 /* ✅ שתי טבלאות אחת ליד השנייה */
 .tables-row{
