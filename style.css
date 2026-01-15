@@ -1,16 +1,12 @@
-/* ===== Base ===== */
 :root{
   --bg:#f6f7fb;
   --card:#ffffff;
   --text:#111;
   --muted:#666;
-  --line:#1a1a1a;
-
   --primary:#2563eb;
   --success:#16a34a;
   --danger:#dc2626;
   --ghost:#f3f4f6;
-
   --shadow:0 8px 30px rgba(0,0,0,.07);
 }
 
@@ -19,14 +15,12 @@ body[data-theme="dark"]{
   --card:#111827;
   --text:#f3f4f6;
   --muted:#9ca3af;
-
-  --line:#e5e7eb;
   --ghost:#1f2937;
-
   --shadow:0 10px 35px rgba(0,0,0,.25);
 }
 
 *{box-sizing:border-box}
+
 body{
   margin:0;
   padding:0;
@@ -35,71 +29,73 @@ body{
   color:var(--text);
 }
 
-/* ===== Header ===== */
 header{
   padding:18px 16px;
 }
+
 .header-inner{
   max-width:1200px;
   margin:0 auto;
   display:flex;
-  align-items:center;
   justify-content:space-between;
+  align-items:center;
   gap:12px;
 }
+
 h1{
   margin:0;
   font-size:20px;
 }
 
-/* ===== Card layout ===== */
 .card{
-  max-width:1200px;
-  margin:12px auto;
   background:var(--card);
   box-shadow:var(--shadow);
   border:1px solid rgba(0,0,0,.08);
   padding:14px;
 }
+
 body[data-theme="dark"] .card{
   border:1px solid rgba(255,255,255,.08);
 }
+
 .card-title{
   font-weight:700;
   margin-bottom:10px;
 }
+
 .card-body{
   display:flex;
   flex-direction:column;
   gap:12px;
 }
 
-/* ===== Controls ===== */
 .btn-row{
   display:flex;
   flex-wrap:wrap;
   gap:10px;
   align-items:center;
 }
+
 .inline{
   display:flex;
   gap:10px;
   align-items:center;
   flex-wrap:wrap;
 }
+
 .form-grid{
   display:grid;
   grid-template-columns:repeat(4, minmax(160px, 1fr)) auto;
   gap:10px;
   align-items:center;
 }
+
 @media (max-width:900px){
   .form-grid{
     grid-template-columns:1fr 1fr;
   }
 }
 
-/* ===== Inputs ===== */
 input, select{
   padding:10px 12px;
   border:1px solid rgba(0,0,0,.2);
@@ -107,12 +103,12 @@ input, select{
   color:var(--text);
   font-size:14px;
 }
+
 body[data-theme="dark"] input,
 body[data-theme="dark"] select{
   border:1px solid rgba(255,255,255,.2);
 }
 
-/* ===== Buttons ===== */
 .btn{
   padding:10px 14px;
   border:1px solid transparent;
@@ -124,159 +120,120 @@ body[data-theme="dark"] select{
   gap:8px;
   user-select:none;
 }
+
 .btn:disabled{
   opacity:.5;
   cursor:not-allowed;
 }
+
 .btn-primary{
   background:var(--primary);
   color:#fff;
 }
+
 .btn-success{
   background:var(--success);
   color:#fff;
 }
+
 .btn-danger{
   background:var(--danger);
   color:#fff;
 }
+
 .btn-outline{
   background:transparent;
-  border-color:rgba(0,0,0,.25);
+  border:1px solid rgba(0,0,0,.25);
   color:var(--text);
 }
+
 body[data-theme="dark"] .btn-outline{
-  border-color:rgba(255,255,255,.25);
+  border:1px solid rgba(255,255,255,.25);
 }
+
 .btn-ghost{
   background:var(--ghost);
   color:var(--text);
-  border-color:rgba(0,0,0,.12);
+  border:1px solid rgba(0,0,0,.12);
 }
+
 body[data-theme="dark"] .btn-ghost{
-  border-color:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.12);
 }
 
 .muted{color:var(--muted)}
 
-/* ===== Table area ===== */
-.capture-title{
-  max-width:1200px;
-  margin:18px auto 10px auto;
-  font-size:26px;
-}
-
-/* =========================================================
-   ✅ FIX סופי: משחקים בימין צמוד, תוצאות משמאל צמוד + קטנה
-   ========================================================= */
-
-/* העוטף: מצמיד את כל השורה לימין */
 .table-wrap{
   width:100%;
-  padding:0;
-  margin:0;
-  box-sizing:border-box;
   display:flex;
   justify-content:flex-end;
 }
 
-/*
-  טריק חשוב:
-  שמים את השורה LTR כדי ש-"left/right" יהיה חד משמעי,
-  ואז מסדרים order: המשחקים ראשון (ימין) והתוצאות אחריו (שמאל)
-*/
 .tables-row{
   display:flex;
-  direction:ltr;
-  justify-content:flex-end; /* מצמיד לימין */
   align-items:flex-start;
-  gap:0;                    /* צמוד בלי רווח */
+  gap:0;
 }
 
-/* סדר: משחקים בימין, תוצאות משמאל */
-.main-wrap{ order:1; }
-.results-wrap{ order:2; }
-
-/* מבטל מרכוז ורווחי card רק באזור הטבלאות */
-.table-wrap .card{
-  max-width:none !important;
-  margin:0 !important;
-  border-radius:0;
-}
-
-/* טבלת משחקים תישאר גמישה */
-.main-wrap{
+.main-column{
+  display:flex;
+  flex-direction:column;
   flex:1 1 auto;
   min-width:0;
 }
 
-/* ✅ תוצאות קטנה ומסודרת */
 .results-wrap{
-  flex:0 0 170px;     /* רוחב נוח למובייל */
-  width:170px;
+  width:140px;
+  flex:0 0 140px;
 }
 
-/* שהכרטיס של התוצאות יהיה קומפקטי כמו המשחקים */
-.results-wrap .card{
-  padding:12px;       /* קצת פחות רווח פנימי */
-}
-.results-wrap .card-title{
-  text-align:center;
+.table-wrap .card{
+  margin:0;
+  border-radius:0;
 }
 
-/* טבלת התוצאות עצמה */
-.results-wrap table{
-  width:100%;
-}
-
-/* שורות/תאים בתוצאות – כמו טבלת משחקים אבל קומפקטי */
-.results-wrap th,
-.results-wrap td{
-  padding:8px 8px;
-  font-size:14px;
-}
-
-/* ה-dropdownים בתוצאות: קטן ומיושר יפה */
-.results-wrap select{
-  width:100%;
-  padding:6px 8px;
-  font-weight:700;
-  box-sizing:border-box;
-}
-
-/* טבלאות כלליות */
 table{
   width:100%;
   border-collapse:collapse;
   background:#fff;
   color:#111;
-  border-radius:0 !important;
-}
-th, td{
-  border:1px solid #000;
-  padding:8px 10px;
-  text-align:center;
-  vertical-align:middle;
-  border-radius:0 !important;
-  font-size:14px;
-}
-th{
-  font-weight:700;
-  background:#fff;
 }
 
-/* totals row */
+th, td{
+  border:1px solid #000;
+  padding:8px;
+  text-align:center;
+  font-size:14px;
+  vertical-align:middle;
+}
+
+.results-wrap th,
+.results-wrap td{
+  padding:6px;
+  font-size:13px;
+}
+
+.results-wrap select{
+  width:100%;
+  padding:5px;
+  font-weight:700;
+  box-sizing:border-box;
+}
+
 #totalsTable td{
   font-weight:700;
 }
+
 #totalsTable .totals-label{
   text-align:right;
   padding-right:14px;
 }
+
 #totalsTable td.winner{
   background:#17c964;
   color:#000;
 }
+
 #totalsTable .tag{
   display:inline-block;
   margin-right:8px;
@@ -287,21 +244,21 @@ th{
   background:#fff;
 }
 
-/* ===== Capture Mode ===== */
 body.capture-mode{
   background:#fff !important;
 }
+
 body.capture-mode .no-capture,
 body.capture-mode header,
 body.capture-mode .card,
 body.capture-mode form{
   display:none !important;
 }
+
 body.capture-mode #captureArea{
   display:block !important;
 }
 
-/* ===== Toast ===== */
 .toast-host{
   position:fixed;
   left:14px;
@@ -311,6 +268,7 @@ body.capture-mode #captureArea{
   gap:10px;
   z-index:9999;
 }
+
 .toast{
   min-width:220px;
   max-width:320px;
@@ -326,65 +284,55 @@ body.capture-mode #captureArea{
   transform:translateY(10px);
   transition:all .22s ease;
 }
+
 body[data-theme="dark"] .toast{
   border:1px solid rgba(255,255,255,.15);
 }
+
 .toast.show{
   opacity:1;
   transform:translateY(0);
 }
+
 .toast-dot{
   width:10px;
   height:10px;
   border-radius:999px;
   background:#999;
 }
+
 .toast-info .toast-dot{background:#3b82f6}
 .toast-success .toast-dot{background:#22c55e}
 .toast-warning .toast-dot{background:#f59e0b}
 .toast-error .toast-dot{background:#ef4444}
 
-/* =============================
-   ✅ מובייל: גלילה לרוחב אם צריך
-   ============================= */
-@media (max-width: 800px){
-
+@media (max-width:800px){
   .table-wrap{
     overflow-x:auto;
     -webkit-overflow-scrolling:touch;
   }
-
-  /* רוחב מינימלי לשורה כדי שלא ימעך */
   .tables-row{
-    min-width:980px;
+    min-width:900px;
   }
-
   th, td{
     padding:5px 6px;
     font-size:13px;
     white-space:nowrap;
   }
-
-  /* תוצאות מעט יותר צרה במובייל */
   .results-wrap{
-    flex:0 0 140px;
-    width:140px;
+    width:110px;
+    flex:0 0 110px;
   }
-
   .results-wrap th,
   .results-wrap td{
-    padding:6px 6px;
+    padding:6px;
     font-size:13px;
   }
-
   .results-wrap select{
     padding:5px 6px;
   }
 }
 
-/* =========================
-   Data Entry Panel (Expert)
-   ========================= */
 .data-entry-toggle{
   max-width: 980px;
   margin: 14px auto 0;
@@ -395,7 +343,7 @@ body[data-theme="dark"] .toast{
   max-width: 980px;
   margin: 12px auto 18px;
   padding: 12px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(0,0,0,.15);
   border-radius: 14px;
   background: var(--card);
   display: none;

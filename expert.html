@@ -4,10 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>מומחה – Winner Form</title>
-
   <link rel="stylesheet" href="style.css" />
-
-  <!-- html2canvas לצילום -->
   <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
@@ -21,14 +18,12 @@
   </div>
 </header>
 
-<!-- כפתור פתיחה להזנת נתונים -->
 <section class="data-entry-toggle no-capture">
   <button id="btnOpenDataEntry" type="button" class="btn btn-primary" aria-expanded="false">
     🧾 הזנת נתונים
   </button>
 </section>
 
-<!-- פאנל הזנת נתונים (נפתח רק בלחיצה) -->
 <div id="dataEntryPanel" class="data-entry-panel no-capture" aria-hidden="true">
   <div class="data-entry-panel__header">
     <div class="data-entry-panel__title">הזנת נתונים</div>
@@ -37,7 +32,6 @@
 
   <div class="data-entry-panel__body">
 
-    <!-- קישורים לשיתוף -->
     <section class="card no-capture">
       <div class="card-title">🔗 קישורים לשיתוף</div>
       <div class="card-body">
@@ -51,7 +45,6 @@
       </div>
     </section>
 
-    <!-- הוספת משחק -->
     <section class="card no-capture">
       <div class="card-title">➕ הוספת משחק לטבלה</div>
       <div class="card-body">
@@ -65,7 +58,6 @@
       </div>
     </section>
 
-    <!-- ✏️ עריכת משחק (נפרד מהוספה) -->
     <section class="card no-capture" id="editCard">
       <div class="card-title">✏️ עריכת משחק בטבלה</div>
       <div class="card-body">
@@ -88,7 +80,6 @@
       </div>
     </section>
 
-    <!-- מחיקה וניקוי -->
     <section class="card no-capture">
       <div class="card-title">🧹 מחיקת משחק בטבלה</div>
       <div class="card-body">
@@ -101,13 +92,11 @@
       </div>
     </section>
 
-    <!-- ניהול שחקנים -->
     <section class="card no-capture">
       <div class="card-title">👤 ניהול שחקנים</div>
       <div class="card-body">
         <div class="player-admin">
 
-          <!-- הוספה + בחירת מיקום -->
           <div class="inline" style="gap:10px; flex-wrap:wrap;">
             <input id="newPlayerName" placeholder="שם שחקן חדש" />
 
@@ -134,7 +123,6 @@
       </div>
     </section>
 
-    <!-- טיימר ניחושים -->
     <section class="card no-capture">
       <div class="card-title">🕒 טיימר ניחושים</div>
       <div class="card-body">
@@ -151,21 +139,27 @@
   </div>
 </div>
 
-<!-- ✅ טבלאות: משחקים בימין, תוצאות משמאל -->
-<div class="table-wrap full-width">
+<div class="table-wrap">
   <div class="tables-row">
 
-    <!-- טבלת משחקים (גדולה) — ראשונה כדי שתהיה בימין -->
-    <div class="main-wrap">
+    <div class="main-column">
+
       <section class="card">
         <div class="card-title">🧾 טבלת משחקים</div>
         <div class="card-body">
           <table id="mainTable" class="table"></table>
         </div>
       </section>
+
+      <section class="card">
+        <div class="card-title">📊 סיכום נקודות</div>
+        <div class="card-body">
+          <table id="totalsTable" class="table"></table>
+        </div>
+      </section>
+
     </div>
 
-    <!-- טבלת תוצאות (קטנה) — אחריה כדי שתהיה משמאל וצמודה -->
     <div class="results-wrap">
       <section class="card">
         <div class="card-title">🏁 תוצאות סופיות</div>
@@ -177,13 +171,6 @@
 
   </div>
 </div>
-
-<section class="card">
-  <div class="card-title">📊 סיכום נקודות</div>
-  <div class="card-body">
-    <table id="totalsTable" class="table"></table>
-  </div>
-</section>
 
 <div id="toastHost" class="toast-host no-capture"></div>
 
