@@ -373,3 +373,13 @@ body[data-theme="dark"] .toast{
 .data-entry-panel__body > .card{
   margin-top: 12px;
 }
+
+
+
+/* ✅ ביטול רווחים בצדדים רק לטבלאות */
+.full-width .card{
+  max-width:100% !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+  border-radius:0;
+}
