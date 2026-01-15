@@ -29,6 +29,7 @@ body[data-theme="dark"]{
 *{box-sizing:border-box}
 body{
   margin:0;
+  padding:0;
   font-family: Arial, Helvetica, sans-serif;
   background:var(--bg);
   color:var(--text);
@@ -165,38 +166,37 @@ body[data-theme="dark"] .btn-ghost{
   font-size:26px;
 }
 
-/* בלי רווחים בצדדים – הטבלאות צמודות */
-.table-wrap{
-  width:100%;
-  padding-left:0;
-  padding-right:0;
-  box-sizing:border-box;
-}
-
-
-.tables-row{
-  display:flex;
-  gap:14px;
-  align-items:flex-start;
-  direction:rtl;              /* ✅ במקום ltr */
-  justify-content:flex-start; /* ב-RTL זה מצמיד לימין */
-}
-
-/* לא חייב את זה יותר, אבל אפשר להשאיר בלי נזק */
-.tables-row > div{
-  direction:rtl;
-}
-
+/* ✅ משחקים צמוד לימין, תוצאות משמאל וצמוד */
 .table-wrap{
   width:100%;
   padding:0;
+  margin:0;
   box-sizing:border-box;
   display:flex;
-  justify-content:flex-end;   /* ✅ דוחף את כל השורה לימין */
+  justify-content:flex-end;
 }
 
+.tables-row{
+  display:flex;
+  flex-direction:row;   /* משחקים בימין */
+  gap:0;                /* בלי רווח */
+  align-items:flex-start;
+}
+
+/* טבלת תוצאות צרה */
+.results-wrap{
+  width:120px;
+  flex:0 0 120px;
+}
 .results-wrap table{
   width:120px;
+}
+
+/* ביטול מרכוז ורווחים של card באזור הטבלאות בלבד */
+.table-wrap .card{
+  max-width:100% !important;
+  margin:0 !important;
+  border-radius:0;
 }
 
 /* טבלאות */
@@ -306,19 +306,17 @@ body[data-theme="dark"] .toast{
 .toast-error .toast-dot{background:#ef4444}
 
 /* ============================= */
-/* ✅ תיקון תצוגת מובייל לטבלאות */
+/* מובייל */
 /* ============================= */
 @media (max-width: 800px){
 
-  /* מאפשר גלילה לרוחב */
   .table-wrap{
     overflow-x:auto;
-    padding-left:0;
     -webkit-overflow-scrolling:touch;
   }
 
   .tables-row{
-    min-width:900px; /* גורם לגלילה ולא לחיתוך */
+    min-width:900px;
   }
 
   th, td{
@@ -336,7 +334,6 @@ body[data-theme="dark"] .toast{
     width:90px;
   }
 }
-
 
 /* =========================
    Data Entry Panel (Expert)
@@ -376,14 +373,4 @@ body[data-theme="dark"] .toast{
 
 .data-entry-panel__body > .card{
   margin-top: 12px;
-}
-
-
-
-/* ✅ ביטול רווחים בצדדים רק לטבלאות */
-.full-width .card{
-  max-width:100% !important;
-  margin-left:0 !important;
-  margin-right:0 !important;
-  border-radius:0;
 }
