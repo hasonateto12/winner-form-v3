@@ -111,7 +111,6 @@
           <div class="inline" style="gap:10px; flex-wrap:wrap;">
             <input id="newPlayerName" placeholder="שם שחקן חדש" />
 
-            <!-- אופציונלי: בחירת מיקום הוספה (app.js תומך בזה) -->
             <select id="addPlayerPos" class="btn" style="padding:10px;">
               <option value="end">בסוף</option>
               <option value="start">בהתחלה</option>
@@ -152,22 +151,11 @@
   </div>
 </div>
 
-
-
-  <div class="table-wrap full-width">
+<!-- ✅ טבלאות: משחקים בימין, תוצאות משמאל -->
+<div class="table-wrap full-width">
   <div class="tables-row">
 
-    <!-- טבלת תוצאות (קטנה, בצד שמאל) -->
-    <div class="results-wrap">
-      <section class="card">
-        <div class="card-title">🏁 תוצאות סופיות</div>
-        <div class="card-body">
-          <table id="resultsTable" class="table"></table>
-        </div>
-      </section>
-    </div>
-
-    <!-- טבלת משחקים (גדולה) -->
+    <!-- טבלת משחקים (גדולה) — ראשונה כדי שתהיה בימין -->
     <div class="main-wrap">
       <section class="card">
         <div class="card-title">🧾 טבלת משחקים</div>
@@ -177,23 +165,26 @@
       </section>
     </div>
 
+    <!-- טבלת תוצאות (קטנה) — אחריה כדי שתהיה משמאל וצמודה -->
+    <div class="results-wrap">
+      <section class="card">
+        <div class="card-title">🏁 תוצאות סופיות</div>
+        <div class="card-body">
+          <table id="resultsTable" class="table"></table>
+        </div>
+      </section>
+    </div>
+
   </div>
 </div>
 
+<section class="card">
+  <div class="card-title">📊 סיכום נקודות</div>
+  <div class="card-body">
+    <table id="totalsTable" class="table"></table>
+  </div>
+</section>
 
-
-
-    <section class="card">
-      <div class="card-title">📊 סיכום נקודות</div>
-      <div class="card-body">
-        <table id="totalsTable" class="table"></table>
-      </div>
-    </section>
-
-
-
-
-  
 <div id="toastHost" class="toast-host no-capture"></div>
 
 <script type="module" src="app.js"></script>

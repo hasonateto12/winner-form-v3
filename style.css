@@ -166,7 +166,11 @@ body[data-theme="dark"] .btn-ghost{
   font-size:26px;
 }
 
-/* ✅ משחקים צמוד לימין, תוצאות משמאל וצמוד */
+/* =========================================================
+   ✅ FIX סופי: משחקים בימין צמוד, תוצאות משמאל צמוד + קטנה
+   ========================================================= */
+
+/* העוטף: מצמיד את כל השורה לימין */
 .table-wrap{
   width:100%;
   padding:0;
@@ -176,30 +180,71 @@ body[data-theme="dark"] .btn-ghost{
   justify-content:flex-end;
 }
 
+/*
+  טריק חשוב:
+  שמים את השורה LTR כדי ש-"left/right" יהיה חד משמעי,
+  ואז מסדרים order: המשחקים ראשון (ימין) והתוצאות אחריו (שמאל)
+*/
 .tables-row{
   display:flex;
-  flex-direction:row;   /* משחקים בימין */
-  gap:0;                /* בלי רווח */
+  direction:ltr;
+  justify-content:flex-end; /* מצמיד לימין */
   align-items:flex-start;
+  gap:0;                    /* צמוד בלי רווח */
 }
 
-/* טבלת תוצאות צרה */
-.results-wrap{
-  width:120px;
-  flex:0 0 120px;
-}
-.results-wrap table{
-  width:120px;
-}
+/* סדר: משחקים בימין, תוצאות משמאל */
+.main-wrap{ order:1; }
+.results-wrap{ order:2; }
 
-/* ביטול מרכוז ורווחים של card באזור הטבלאות בלבד */
+/* מבטל מרכוז ורווחי card רק באזור הטבלאות */
 .table-wrap .card{
-  max-width:100% !important;
+  max-width:none !important;
   margin:0 !important;
   border-radius:0;
 }
 
-/* טבלאות */
+/* טבלת משחקים תישאר גמישה */
+.main-wrap{
+  flex:1 1 auto;
+  min-width:0;
+}
+
+/* ✅ תוצאות קטנה ומסודרת */
+.results-wrap{
+  flex:0 0 170px;     /* רוחב נוח למובייל */
+  width:170px;
+}
+
+/* שהכרטיס של התוצאות יהיה קומפקטי כמו המשחקים */
+.results-wrap .card{
+  padding:12px;       /* קצת פחות רווח פנימי */
+}
+.results-wrap .card-title{
+  text-align:center;
+}
+
+/* טבלת התוצאות עצמה */
+.results-wrap table{
+  width:100%;
+}
+
+/* שורות/תאים בתוצאות – כמו טבלת משחקים אבל קומפקטי */
+.results-wrap th,
+.results-wrap td{
+  padding:8px 8px;
+  font-size:14px;
+}
+
+/* ה-dropdownים בתוצאות: קטן ומיושר יפה */
+.results-wrap select{
+  width:100%;
+  padding:6px 8px;
+  font-weight:700;
+  box-sizing:border-box;
+}
+
+/* טבלאות כלליות */
 table{
   width:100%;
   border-collapse:collapse;
@@ -218,12 +263,6 @@ th, td{
 th{
   font-weight:700;
   background:#fff;
-}
-
-/* dropdown קטן בתוך תוצאות */
-.results-wrap select{
-  padding:4px 6px;
-  font-weight:700;
 }
 
 /* totals row */
@@ -305,9 +344,9 @@ body[data-theme="dark"] .toast{
 .toast-warning .toast-dot{background:#f59e0b}
 .toast-error .toast-dot{background:#ef4444}
 
-/* ============================= */
-/* מובייל */
-/* ============================= */
+/* =============================
+   ✅ מובייל: גלילה לרוחב אם צריך
+   ============================= */
 @media (max-width: 800px){
 
   .table-wrap{
@@ -315,8 +354,9 @@ body[data-theme="dark"] .toast{
     -webkit-overflow-scrolling:touch;
   }
 
+  /* רוחב מינימלי לשורה כדי שלא ימעך */
   .tables-row{
-    min-width:900px;
+    min-width:980px;
   }
 
   th, td{
@@ -325,13 +365,20 @@ body[data-theme="dark"] .toast{
     white-space:nowrap;
   }
 
+  /* תוצאות מעט יותר צרה במובייל */
   .results-wrap{
-    width:90px;
-    flex:0 0 90px;
+    flex:0 0 140px;
+    width:140px;
   }
 
-  .results-wrap table{
-    width:90px;
+  .results-wrap th,
+  .results-wrap td{
+    padding:6px 6px;
+    font-size:13px;
+  }
+
+  .results-wrap select{
+    padding:5px 6px;
   }
 }
 
