@@ -90,11 +90,13 @@ function initDataEntryToggle() {
    ========================= */
 const DEFAULT_PLAYERS = ["חגי", "ראזי", "סעיד", "ווסים", "אביאל", "צביר", "שמעון"];
 
+/**
+ * ✅ שינוי חשוב:
+ * הסדר בטבלה הוא בדיוק הסדר ששמור ב-Firestore בתוך formData.players.
+ * לכן אם תמחק שחקן ותוסיף מחדש "בסוף" — הוא באמת יופיע בסוף.
+ */
 function getPlayersOrder() {
-  const arr = Array.isArray(formData.players) ? formData.players : DEFAULT_PLAYERS;
-  const fixed = DEFAULT_PLAYERS.filter((p) => arr.includes(p));
-  const extras = arr.filter((p) => !DEFAULT_PLAYERS.includes(p));
-  return [...fixed, ...extras];
+  return Array.isArray(formData.players) ? formData.players : DEFAULT_PLAYERS.slice();
 }
 
 /* =========================
@@ -108,8 +110,54 @@ function findExistingPlayerName(playersArr, inputName) {
   return (playersArr || []).find((p) => normName(p) === target) || "";
 }
 
+/**
+ * מכניס/מעדכן שחקן במיקום מסוים:
+ * - אם קיים: מוחק ואז מכניס במיקום שבחרת
+ * - אם חדש: מכניס במיקום שבחרת
+ */
+function upsertPlayerAt(playersArr, name, index) {
+  const n = normName(name);
+  const base = Array.isArray(playersArr) ? [...playersArr] : [];
+  const cleaned = base.filter((p) => normName(p) !== n);
+
+  const idx = Math.max(0, Math.min(Number(index) || 0, cleaned.length));
+  cleaned.splice(idx, 0, n);
+  return cleaned;
+}
+
 /* =========================
-   ✅ NEW: Populate delete-player control (Select or Input+Autocomplete)
+   ✅ NEW: Populate controls for ordering
+   (Optional HTML elements)
+   - #addPlayerPos: select with values: end | start | after
+   - #addPlayerAfter: select of player names (used when addPlayerPos = after)
+   ========================= */
+function populateAddPlayerControls() {
+  const posSel = document.getElementById("addPlayerPos");
+  const afterSel = document.getElementById("addPlayerAfter");
+  if (!posSel && !afterSel) return;
+
+  // אם יש after select – נמלא אותו
+  if (afterSel) {
+    const players = getPlayersOrder();
+    const cur = afterSel.value;
+    afterSel.innerHTML =
+      `<option value="">בחר שחקן</option>` +
+      players.map((p) => `<option value="${p}">${p}</option>`).join("");
+    if (players.includes(cur)) afterSel.value = cur;
+  }
+
+  // ניהול disabled לפי pos
+  if (posSel && afterSel) {
+    const apply = () => {
+      afterSel.disabled = posSel.value !== "after";
+    };
+    posSel.addEventListener("change", apply);
+    apply();
+  }
+}
+
+/* =========================
+   ✅ Populate delete-player control (Select or Input+Autocomplete)
    ========================= */
 function populateDeletePlayerControl() {
   const el = document.getElementById("deletePlayerName");
@@ -376,7 +424,8 @@ async function initExpert() {
   const ok = adminKey ? (await sha256(adminKey)) === adminHash : false;
 
   if (!ok) {
-    if (linkInfo) linkInfo.textContent = "⚠️ חסר/לא נכון מפתח מומחה בקישור. פתח את קישור המומחה המקורי.";
+    if (linkInfo) linkInfo.textContent =
+      "⚠️ חסר/לא נכון מפתח מומחה בקישור. פתח את קישור המומחה המקורי.";
     disableExpertActions();
     if (btnCopyImage) btnCopyImage.disabled = true;
     exitEditMode();
@@ -386,10 +435,9 @@ async function initExpert() {
     if (btnCopyPlayers) btnCopyPlayers.disabled = false;
     if (btnStartGuess) btnStartGuess.disabled = false;
     if (btnStopGuess) btnStopGuess.disabled = false;
-
     if (btnLoadEdit) btnLoadEdit.disabled = false;
 
-    // אם קיימת אצלך הפונקציה הזו בקובץ/בקטע אחר - זה יעבוד.
+    // אם קיימת אצלך הפונקציה copyCaptureAreaImage במקום אחר - זה יעבוד
     if (btnCopyImage) {
       btnCopyImage.disabled = false;
       if (typeof copyCaptureAreaImage === "function") {
@@ -422,7 +470,9 @@ async function initExpert() {
     formData.finalResults = d.finalResults && typeof d.finalResults === "object" ? d.finalResults : {};
     formData.players = Array.isArray(d.players) ? d.players : DEFAULT_PLAYERS.slice();
 
+    // רענון בקרים
     populateDeletePlayerControl();
+    populateAddPlayerControls();
 
     await loadAllGuesses();
     renderResultsTable();
@@ -472,7 +522,6 @@ async function initExpert() {
 
     setEditEnabled(true);
     editCard?.scrollIntoView({ behavior: "smooth", block: "start" });
-
     toast(`נטענה שורה ${n} לעריכה ✏️`, "success");
   });
 
@@ -509,6 +558,19 @@ async function initExpert() {
     exitEditMode();
   });
 
+  /**
+   * ✅ הוספת שחקן עם בחירת מיקום
+   * אם יש לך ב-HTML:
+   * - <select id="addPlayerPos">
+   *     <option value="end">בסוף</option>
+   *     <option value="start">בהתחלה</option>
+   *     <option value="after">אחרי שחקן</option>
+   *   </select>
+   * - <select id="addPlayerAfter"></select>
+   *
+   * אז זה יתמוך בזה אוטומטית.
+   * אם אין לך את האלמנטים האלה, ברירת מחדל: הוספה לסוף.
+   */
   btnAddPlayer?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
@@ -516,14 +578,31 @@ async function initExpert() {
     if (!name) return toast("הכנס שם שחקן", "warning");
 
     const current = Array.isArray(formData.players) ? [...formData.players] : DEFAULT_PLAYERS.slice();
-    const exists = current.some((p) => normName(p) === name);
-    if (exists) return toast("השם כבר קיים", "warning");
 
-    current.push(name);
-    await updateDoc(formRef(), { players: current });
+    const posSel = document.getElementById("addPlayerPos");
+    const afterSel = document.getElementById("addPlayerAfter");
+    const mode = posSel?.value || "end";
 
-    formData.players = current;
+    let updated = current;
+
+    if (mode === "start") {
+      updated = upsertPlayerAt(current, name, 0);
+    } else if (mode === "after") {
+      const afterName = afterSel?.value || "";
+      const realAfter = findExistingPlayerName(current, afterName);
+      if (!realAfter) return toast("בחר שחקן 'אחרי מי' לשים", "warning");
+      const afterIndex = current.findIndex((p) => normName(p) === normName(realAfter));
+      updated = upsertPlayerAt(current, name, afterIndex + 1);
+    } else {
+      // end (default)
+      updated = upsertPlayerAt(current, name, current.length);
+    }
+
+    await updateDoc(formRef(), { players: updated });
+
+    formData.players = updated;
     populateDeletePlayerControl();
+    populateAddPlayerControls();
     renderExpertTable();
     renderTotalsOutside();
 
@@ -531,7 +610,7 @@ async function initExpert() {
     toast("שחקן נוסף ✅", "success");
   });
 
-  /* ✅✅ DELETE PLAYER (works also for DEFAULT players) */
+  /* ✅✅ DELETE PLAYER (works also for any player) */
   btnDeletePlayer?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
@@ -560,6 +639,7 @@ async function initExpert() {
 
     formData.players = updatedPlayers;
     populateDeletePlayerControl();
+    populateAddPlayerControls();
     renderExpertTable();
     renderTotalsOutside();
 
@@ -657,6 +737,7 @@ async function initExpert() {
 
     formData.players = DEFAULT_PLAYERS.slice();
     populateDeletePlayerControl();
+    populateAddPlayerControls();
 
     toast("הטבלה נוקתה ✅", "success");
   });
@@ -1020,7 +1101,8 @@ function populatePlayersDropdown() {
   const players = getPlayersOrder();
 
   sel.innerHTML =
-    `<option value="">בחר שחקן</option>` + players.map((p) => `<option value="${p}">${p}</option>`).join("");
+    `<option value="">בחר שחקן</option>` +
+    players.map((p) => `<option value="${p}">${p}</option>`).join("");
 
   if (players.includes(currentVal)) sel.value = currentVal;
 }
