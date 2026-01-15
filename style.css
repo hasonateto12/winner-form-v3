@@ -174,23 +174,27 @@ body[data-theme="dark"] .btn-ghost{
 }
 
 
-/* ✅ שתי טבלאות אחת ליד השנייה */
 .tables-row{
   display:flex;
   gap:14px;
   align-items:flex-start;
-  direction:ltr;
+  direction:rtl;              /* ✅ במקום ltr */
+  justify-content:flex-start; /* ב-RTL זה מצמיד לימין */
 }
+
+/* לא חייב את זה יותר, אבל אפשר להשאיר בלי נזק */
 .tables-row > div{
   direction:rtl;
 }
 
-/* ✅ טבלת תוצאות צרה */
-.results-wrap{
-  width:120px;
-  flex:0 0 120px;
-  padding-left:0 !important;
+.table-wrap{
+  width:100%;
+  padding:0;
+  box-sizing:border-box;
+  display:flex;
+  justify-content:flex-end;   /* ✅ דוחף את כל השורה לימין */
 }
+
 .results-wrap table{
   width:120px;
 }
