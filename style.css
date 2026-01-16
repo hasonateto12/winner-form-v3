@@ -167,15 +167,12 @@ body[data-theme="dark"] .btn-ghost{
   width:100%;
   display:flex;
   justify-content:flex-end;
-  padding:0;
-  margin:0;
 }
 
 .tables-row{
   display:flex;
   align-items:flex-start;
   gap:0;
-  width:100%;
 }
 
 .main-column{
@@ -198,7 +195,6 @@ body[data-theme="dark"] .btn-ghost{
 table{
   width:100%;
   border-collapse:collapse;
-  table-layout:fixed;
   background:#fff;
   color:#111;
 }
@@ -311,54 +307,29 @@ body[data-theme="dark"] .toast{
 .toast-error .toast-dot{background:#ef4444}
 
 @media (max-width:800px){
-  header{ padding:12px 10px; }
-  .header-inner{ max-width:100%; padding:0 4px; }
-  h1{ font-size:18px; }
-
   .table-wrap{
-    overflow:hidden;
-    justify-content:flex-end;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
   }
-
   .tables-row{
-    width:100%;
+    min-width:900px;
   }
-
-  .results-wrap{
-    width:92px;
-    flex:0 0 92px;
-  }
-
-  .card{
-    padding:8px;
-    box-shadow:none;
-  }
-
-  .card-title{
-    margin-bottom:6px;
-    font-size:14px;
-  }
-
-  table{
-    table-layout:fixed;
-  }
-
   th, td{
-    padding:4px 4px;
-    font-size:10px;
-    white-space:normal;
-    word-break:break-word;
+    padding:5px 6px;
+    font-size:13px;
+    white-space:nowrap;
   }
-
+  .results-wrap{
+    width:110px;
+    flex:0 0 110px;
+  }
   .results-wrap th,
   .results-wrap td{
-    padding:4px 4px;
-    font-size:10px;
+    padding:6px;
+    font-size:13px;
   }
-
   .results-wrap select{
-    padding:3px 4px;
-    font-size:10px;
+    padding:5px 6px;
   }
 }
 
