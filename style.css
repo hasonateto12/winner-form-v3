@@ -369,3 +369,70 @@ body[data-theme="dark"] .toast{
 .data-entry-panel__body > .card{
   margin-top: 12px;
 }
+
+
+
+
+
+.table-wrap{
+  width:100%;
+  display:flex;
+  justify-content:flex-end;
+  padding:0;
+  margin:0;
+}
+
+.tables-row{
+  display:flex;
+  align-items:flex-start;
+  gap:0;
+}
+
+.main-column{
+  display:flex;
+  flex-direction:column;
+  width:calc(100% - 140px);
+  max-width:calc(100% - 140px);
+}
+
+.main-column .card{
+  width:100%;
+}
+
+.results-wrap{
+  width:140px;
+  flex:0 0 140px;
+}
+
+#mainTable, #totalsTable{
+  table-layout:fixed;
+  width:100%;
+}
+
+#mainTable th, #mainTable td{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+#totalsTable th, #totalsTable td{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+@media (max-width:800px){
+  .results-wrap{
+    width:92px;
+    flex:0 0 92px;
+  }
+  .main-column{
+    width:calc(100% - 92px);
+    max-width:calc(100% - 92px);
+  }
+  #mainTable th, #mainTable td,
+  #totalsTable th, #totalsTable td{
+    white-space:normal;
+    word-break:break-word;
+  }
+}
