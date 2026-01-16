@@ -1,3 +1,143 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>מומחה – Winner Form</title>
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+
+<header class="no-capture">
+  <div class="header-inner">
+    <h1>Winner Form – מומחה</h1>
+    <div class="header-actions">
+      <button id="themeToggle" type="button" class="btn btn-ghost">🌙 מצב כהה</button>
+    </div>
+  </div>
+</header>
+
+<section class="data-entry-toggle no-capture">
+  <button id="btnOpenDataEntry" type="button" class="btn btn-primary" aria-expanded="false">
+    🧾 הזנת נתונים
+  </button>
+</section>
+
+<div id="dataEntryPanel" class="data-entry-panel no-capture" aria-hidden="true">
+  <div class="data-entry-panel__header">
+    <div class="data-entry-panel__title">הזנת נתונים</div>
+    <button id="btnCloseDataEntry" type="button" class="btn btn-outline">✖ סגירה</button>
+  </div>
+
+  <div class="data-entry-panel__body">
+
+    <section class="card no-capture">
+      <div class="card-title">🔗 קישורים לשיתוף</div>
+      <div class="card-body">
+        <div id="linkInfo" class="muted">לחץ “צור טופס חדש” כדי לקבל קישורים.</div>
+
+        <div class="btn-row">
+          <button id="btnNew" type="button" class="btn btn-primary">➕ צור טופס חדש</button>
+          <button id="btnCopyExpert" type="button" class="btn btn-outline" disabled>🔑 העתק קישור מומחה</button>
+          <button id="btnCopyPlayers" type="button" class="btn btn-outline" disabled>👥 העתק קישור שחקנים</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card no-capture">
+      <div class="card-title">➕ הוספת משחק לטבלה</div>
+      <div class="card-body">
+        <form id="matchForm" class="form-grid">
+          <input id="day" placeholder="יום המשחק" required />
+          <input id="league" placeholder="ליגה" required />
+          <input id="home" placeholder="קבוצת בית" required />
+          <input id="away" placeholder="קבוצת חוץ" required />
+          <button type="submit" class="btn btn-primary">הוסף משחק</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="card no-capture" id="editCard">
+      <div class="card-title">✏️ עריכת משחק בטבלה</div>
+      <div class="card-body">
+
+        <div class="btn-row">
+          <input id="editIndex" type="number" min="1" placeholder="מספר שורה לעריכה" />
+          <button id="btnLoadEdit" type="button" class="btn btn-outline" disabled>📥 טען לעריכה</button>
+          <button id="btnCancelEdit" type="button" class="btn btn-ghost" disabled>ביטול</button>
+        </div>
+
+        <form id="editForm" class="form-grid">
+          <input id="editDay" placeholder="יום המשחק" required />
+          <input id="editLeague" placeholder="ליגה" required />
+          <input id="editHome" placeholder="קבוצת בית" required />
+          <input id="editAway" placeholder="קבוצת חוץ" required />
+          <button id="btnSaveEdit" type="submit" class="btn btn-primary" disabled>💾 שמור עריכה</button>
+        </form>
+
+        <div class="muted"></div>
+      </div>
+    </section>
+
+    <section class="card no-capture">
+      <div class="card-title">🧹 מחיקת משחק בטבלה</div>
+      <div class="card-body">
+        <div class="btn-row">
+          <input id="deleteIndex" type="number" min="1" placeholder="מספר שורה למחיקה" />
+          <button id="btnDelete" type="button" class="btn btn-danger" disabled>🗑 מחק משחק</button>
+          <button id="btnClear" type="button" class="btn btn-danger" disabled>🧨 נקה את כל הטבלה</button>
+        </div>
+        <div class="muted"></div>
+      </div>
+    </section>
+
+    <section class="card no-capture">
+      <div class="card-title">👤 ניהול שחקנים</div>
+      <div class="card-body">
+        <div class="player-admin">
+
+          <div class="inline" style="gap:10px; flex-wrap:wrap;">
+            <input id="newPlayerName" placeholder="שם שחקן חדש" />
+
+            <select id="addPlayerPos" class="btn" style="padding:10px;">
+              <option value="end">בסוף</option>
+              <option value="start">בהתחלה</option>
+              <option value="after">אחרי שחקן</option>
+            </select>
+
+            <select id="addPlayerAfter" class="btn" style="padding:10px;" disabled>
+              <option value="">בחר שחקן</option>
+            </select>
+
+            <button id="btnAddPlayer" type="button" class="btn btn-primary" disabled>➕ הוסף שחקן</button>
+          </div>
+
+          <div class="inline">
+            <input id="deletePlayerName" placeholder="שם שחקן למחיקה" />
+            <button id="btnDeletePlayer" type="button" class="btn btn-danger" disabled>🗑 מחק שחקן</button>
+          </div>
+
+          <div class="muted"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card no-capture">
+      <div class="card-title">🕒 טיימר ניחושים</div>
+      <div class="card-body">
+        <div class="timer-row">
+          <label class="muted">ניחושים עד:</label>
+          <input id="guessEnd" type="datetime-local" />
+          <button id="btnStartGuess" type="button" class="btn btn-primary" disabled>⏱ התחל זמן ניחושים</button>
+          <button id="btnStopGuess" type="button" class="btn btn-danger" disabled>⛔ עצור ניחושים עכשיו</button>
+        </div>
+        <div id="guessStatus" class="muted" style="margin-top:10px;">ניחושים עדיין לא התחילו.</div>
+      </div>
+    </section>
+
+  </div>
+</div>
 <div class="table-wrap">
   <div class="layout">
 
@@ -30,3 +170,10 @@
 
   </div>
 </div>
+
+
+<div id="toastHost" class="toast-host no-capture"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
