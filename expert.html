@@ -138,11 +138,11 @@
 
   </div>
 </div>
-<div class="table-wrap">
-  <div class="layout">
 
-    <!-- שורה עליונה: משחקים + תוצאות -->
-    <div class="top-row">
+<div class="table-wrap">
+  <div class="tables-row">
+
+    <div class="main-column">...
 
       <section class="card">
         <div class="card-title">🧾 טבלת משחקים</div>
@@ -151,26 +151,26 @@
         </div>
       </section>
 
-      <section class="card results-card">
-        <div class="card-title">🏁 תוצאות סופיות</div>
+      <section class="card">
+        <div class="card-title">📊 סיכום נקודות</div>
         <div class="card-body">
-          <table id="resultsTable" class="table"></table>
+          <table id="totalsTable" class="table"></table>
         </div>
       </section>
 
     </div>
 
-    <!-- למטה: סיכום נקודות -->
-    <section class="card">
-      <div class="card-title">📊 סיכום נקודות</div>
-      <div class="card-body">
-        <table id="totalsTable" class="table"></table>
-      </div>
-    </section>
+    <div class="results-wrap">
+      <section class="card">
+        <div class="card-title">🏁 תוצאות סופיות</div>
+        <div class="card-body">
+          <table id="resultsTable" class="table"></table>
+        </div>
+      </section>
+    </div>
 
   </div>
 </div>
-
 
 <div id="toastHost" class="toast-host no-capture"></div>
 
