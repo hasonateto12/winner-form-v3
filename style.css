@@ -370,10 +370,7 @@ body[data-theme="dark"] .toast{
   margin-top: 12px;
 }
 
-/* רק תאי ניחושים כשאין אף מנצח */
-.no-winner-pick {
-  background: #ffdd00 !important;
+/* שורה שבה אף אחד לא ניחש נכון */
+.no-winner-row td {
+  background: #fff3a0 !important;
 }
-
-
-

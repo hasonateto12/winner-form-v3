@@ -919,20 +919,23 @@ function renderExpertTable() {
   for (let r = 0; r < matches.length; r++) {
     const m = matches[r];
     const tr = document.createElement("tr");
-    const matchId = m.id;
-const finalRes = formData.finalResults?.[matchId] || "";
 
-// האם יש לפחות שחקן אחד שפגע?
+    // בדיקה אם יש תוצאה ואף אחד לא ניחש נכון
+const matchId = m.id;
+const finalRes = formData.finalResults?.[matchId] || "";
 let hasWinner = false;
+
 if (finalRes) {
-  for (const player of PLAYERS_ORDER) {
+  PLAYERS_ORDER.forEach((player) => {
     const pick = guessesByPlayer[player]?.[matchId] || "";
-    if (pick === finalRes) { hasWinner = true; break; }
-  }
+    if (pick === finalRes) hasWinner = true;
+  });
 }
 
-// האם צריך לצבוע צהוב את תאי הניחושים?
-const markNoWinner = !!finalRes && !hasWinner;
+// אם יש תוצאה ואין אף מנצח – צבע צהוב
+if (finalRes && !hasWinner) {
+  tr.classList.add("no-winner-row");
+}
 
 
     tr.insertAdjacentHTML("beforeend", `<td>${r + 1}</td>`);
@@ -954,22 +957,17 @@ const markNoWinner = !!finalRes && !hasWinner;
     tr.insertAdjacentHTML("beforeend", `<td>${m.home || ""}</td>`);
     tr.insertAdjacentHTML("beforeend", `<td>${m.away || ""}</td>`);
 
-   PLAYERS_ORDER.forEach((player) => {
-  const pick = guessesByPlayer[player]?.[matchId] || "";
-  const isGreen = !!finalRes && pick === finalRes;
+    PLAYERS_ORDER.forEach((player) => {
+      const matchId = m.id;
+      const pick = guessesByPlayer[player]?.[matchId] || "";
+      const finalRes = formData.finalResults?.[matchId] || "";
+      const isGreen = !!finalRes && pick === finalRes;
 
-  const td = document.createElement("td");
-  td.textContent = pick;
-
-  if (isGreen) {
-    td.style.background = "#b6fcb6";
-  } else if (markNoWinner) {
-    td.classList.add("no-winner-pick");
-  }
-
-  tr.appendChild(td);
-});
-
+      const td = document.createElement("td");
+      td.textContent = pick;
+      if (isGreen) td.style.background = "#b6fcb6";
+      tr.appendChild(td);
+    });
 
     table.appendChild(tr);
   }
