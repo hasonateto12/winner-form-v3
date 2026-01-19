@@ -372,5 +372,5 @@ body[data-theme="dark"] .toast{
 
 /* רק תאי ניחושים כשאין אף מנצח */
 .no-winner-pick {
-  background: #fff3a0 !important;
+  background: #ffdd00 !important;
 }
