@@ -920,6 +920,24 @@ function renderExpertTable() {
     const m = matches[r];
     const tr = document.createElement("tr");
 
+    // בדיקה אם יש תוצאה ואף אחד לא ניחש נכון
+const matchId = m.id;
+const finalRes = formData.finalResults?.[matchId] || "";
+let hasWinner = false;
+
+if (finalRes) {
+  PLAYERS_ORDER.forEach((player) => {
+    const pick = guessesByPlayer[player]?.[matchId] || "";
+    if (pick === finalRes) hasWinner = true;
+  });
+}
+
+// אם יש תוצאה ואין אף מנצח – צבע צהוב
+if (finalRes && !hasWinner) {
+  tr.classList.add("no-winner-row");
+}
+
+
     tr.insertAdjacentHTML("beforeend", `<td>${r + 1}</td>`);
 
     if (daySpanAt[r]) {
