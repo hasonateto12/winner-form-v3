@@ -919,7 +919,6 @@ function renderExpertTable() {
   for (let r = 0; r < matches.length; r++) {
     const m = matches[r];
     const tr = document.createElement("tr");
-
     const matchId = m.id;
 const finalRes = formData.finalResults?.[matchId] || "";
 
@@ -934,7 +933,7 @@ if (finalRes) {
 
 // האם צריך לצבוע צהוב את תאי הניחושים?
 const markNoWinner = !!finalRes && !hasWinner;
-  }}
+
 
     tr.insertAdjacentHTML("beforeend", `<td>${r + 1}</td>`);
 
@@ -971,6 +970,10 @@ const markNoWinner = !!finalRes && !hasWinner;
   tr.appendChild(td);
 });
 
+
+    table.appendChild(tr);
+  }
+}
 
 function renderTotalsOutside() {
   const totalsTable = document.getElementById("totalsTable");
