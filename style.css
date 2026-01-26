@@ -183,8 +183,8 @@ body[data-theme="dark"] .btn-ghost{
 }
 
 .results-wrap{
-  width:140px;
-  flex:0 0 140px;
+  flex: 1 1 auto;
+  width: auto;
 }
 
 .table-wrap .card{
@@ -320,8 +320,8 @@ body[data-theme="dark"] .toast{
     white-space:nowrap;
   }
   .results-wrap{
-    width:110px;
-    flex:0 0 110px;
+    width: auto;
+    flex: 1 1 auto;
   }
   .results-wrap th,
   .results-wrap td{
