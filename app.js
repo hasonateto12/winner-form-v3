@@ -896,7 +896,7 @@ function renderResultsTable() {
     matches.forEach((m, index) => {
       const mid = m.id;
       const tr = document.createElement("tr");
-      
+
       // תא מספרי
       const tdNum = document.createElement("td");
       tdNum.textContent = String(index + 1);
@@ -904,6 +904,7 @@ function renderResultsTable() {
 
       // תא תוצאה
       const td = document.createElement("td");
+
       if (canEdit) {
         const sel = document.createElement("select");
         sel.setAttribute("data-mid", mid);
@@ -937,6 +938,7 @@ function renderResultsTable() {
     });
   });
 }
+
 
 function renderExpertTable() {
   const table = document.getElementById("mainTable");
