@@ -374,3 +374,55 @@ body[data-theme="dark"] .toast{
 
 /* רק תאי ניחושים כשאין אף מנצח */
 .no-winner-pick { background: #ffdd00 !important; }
+
+/* =========================
+   ✅ הגדלת טבלאות (מובייל + כללי)
+   ========================= */
+
+/* כל הטבלאות */
+table{
+  font-size: 15px;              /* היה 12 */
+}
+
+th, td{
+  padding: 8px 10px;            /* היה 4–5 */
+}
+
+/* כל עמודה תקבל מינימום רוחב */
+th, td{
+  min-width: 46px;
+}
+
+/* טבלת תוצאות – גדולה ונוחה */
+.results-wrap{
+  width: 160px;                 /* היה 110 */
+  flex: 0 0 160px;
+}
+
+.results-wrap th,
+.results-wrap td{
+  font-size: 14px;
+  padding: 8px 8px;
+}
+
+.results-wrap select{
+  font-size: 14px;
+  padding: 8px 8px;
+  height: 36px;
+}
+
+/* מובייל – עוד קצת הגדלה */
+@media (max-width: 900px){
+  table{
+    font-size: 17px;
+  }
+
+  th, td{
+    padding: 10px 12px;
+  }
+
+  .results-wrap{
+    width: 180px;
+    flex: 0 0 180px;
+  }
+}
