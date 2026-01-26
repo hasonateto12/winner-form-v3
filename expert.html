@@ -139,10 +139,14 @@
   </div>
 </div>
 
+<!-- ✅ מבנה חדש:
+     1) שורה עליונה: טבלת משחקים + טבלת תוצאות (בגובה זהה)
+     2) מתחת: טבלת סיכום נקודות (רוחב מלא)
+-->
 <div class="table-wrap">
   <div class="tables-row">
 
-    <div class="main-column">
+    <div class="top-row">
       <section class="card">
         <div class="card-title">🧾 טבלת משחקים</div>
         <div class="card-body">
@@ -150,22 +154,21 @@
         </div>
       </section>
 
-      <section class="card">
-        <div class="card-title">📊 סיכום נקודות</div>
-        <div class="card-body">
-          <table id="totalsTable" class="table"></table>
-        </div>
-      </section>
-
+      <div class="results-wrap">
+        <section class="card">
+          <div class="card-body">
+            <table id="resultsTable" class="table"></table>
+          </div>
+        </section>
+      </div>
     </div>
 
-    <div class="results-wrap">
-      <section class="card">
-        <div class="card-body">
-          <table id="resultsTable" class="table"></table>
-        </div>
-      </section>
-    </div>
+    <section class="card totals-card">
+      <div class="card-title">📊 סיכום נקודות</div>
+      <div class="card-body">
+        <table id="totalsTable" class="table"></table>
+      </div>
+    </section>
 
   </div>
 </div>
