@@ -163,38 +163,35 @@ body[data-theme="dark"] .btn-ghost{
 
 .muted{color:var(--muted)}
 
+/* =========================
+   ✅ TABLE LAYOUT (מבנה חדש)
+   ========================= */
+
 .table-wrap{
   width:100%;
   display:flex;
   justify-content:flex-end;
 }
 
+/* עכשיו הכל בעמודה: (1) top-row (2) totals */
 .tables-row{
   display:flex;
-  align-items:flex-start;   /* חשוב: לא למתוח לגובה */
+  flex-direction:column;
+  align-items:stretch;
   gap:0;
 }
 
-.main-column{
+/* השורה העליונה: טבלת משחקים + טבלת תוצאות */
+.top-row{
   display:flex;
-  flex-direction:column;
-  flex:1 1 auto;
-  min-width:0;
+  align-items:flex-start; /* חשוב: התוצאות לא יימתחו לפי הסיכום */
+  gap:0;
 }
 
-/* ✅ תיקון עיקרי – טבלת התוצאות לא נמתחת לגובה */
+/* טבלת התוצאות: רוחב קבוע כמו פעם, אבל גובה רק לפי טבלת המשחקים */
 .results-wrap{
-  flex: 0 0 auto;
-  width: auto;
-  align-self: flex-start;
-  height: auto;
-  display: block;
-}
-
-/* ✅ גם ה-card שבתוך התוצאות לא נמתח */
-.results-wrap .card{
-  height: auto !important;
-  align-self: flex-start;
+  width:140px;
+  flex:0 0 140px;
 }
 
 .table-wrap .card{
@@ -230,6 +227,7 @@ th, td{
   box-sizing:border-box;
 }
 
+/* טבלת סיכום */
 #totalsTable td{
   font-weight:700;
 }
@@ -254,6 +252,9 @@ th, td{
   background:#fff;
 }
 
+/* =========================
+   Capture mode
+   ========================= */
 body.capture-mode{
   background:#fff !important;
 }
@@ -269,6 +270,9 @@ body.capture-mode #captureArea{
   display:block !important;
 }
 
+/* =========================
+   Toast
+   ========================= */
 .toast-host{
   position:fixed;
   left:14px;
@@ -316,30 +320,29 @@ body[data-theme="dark"] .toast{
 .toast-warning .toast-dot{background:#f59e0b}
 .toast-error .toast-dot{background:#ef4444}
 
+/* =========================
+   Mobile
+   ========================= */
 @media (max-width:800px){
   .table-wrap{
     overflow-x:auto;
     -webkit-overflow-scrolling:touch;
   }
-  .tables-row{
+
+  /* מה שנגלל לרוחב זה רק השורה העליונה (משחקים+תוצאות) */
+  .top-row{
     min-width:900px;
   }
+
   th, td{
     padding:5px 6px;
     font-size:13px;
     white-space:nowrap;
   }
 
-  /* ✅ גם במובייל */
   .results-wrap{
-    flex: 0 0 auto;
-    width: auto;
-    align-self: flex-start;
-    height: auto;
-  }
-
-  .results-wrap .card{
-    height: auto !important;
+    width:140px;
+    flex:0 0 140px;
   }
 
   .results-wrap th,
@@ -353,6 +356,9 @@ body[data-theme="dark"] .toast{
   }
 }
 
+/* =========================
+   Data entry panel
+   ========================= */
 .data-entry-toggle{
   max-width: 980px;
   margin: 14px auto 0;
