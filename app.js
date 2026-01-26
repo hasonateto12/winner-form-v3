@@ -897,12 +897,12 @@ function renderResultsTable() {
       const mid = m.id;
       const tr = document.createElement("tr");
 
-      // תא מספרי
+      // מספר שורה
       const tdNum = document.createElement("td");
       tdNum.textContent = String(index + 1);
       tr.appendChild(tdNum);
 
-      // תא תוצאה
+      // תוצאה
       const td = document.createElement("td");
 
       if (canEdit) {
@@ -918,9 +918,10 @@ function renderResultsTable() {
 
         sel.addEventListener("change", async () => {
           if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
-          const next = sel.value || "";
 
+          const next = sel.value || "";
           const updated = { ...(formData.finalResults || {}) };
+
           if (!next) delete updated[mid];
           else updated[mid] = next;
 
