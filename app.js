@@ -276,6 +276,40 @@ function guessDocRef(player) {
   return doc(db, "forms", formId, "guesses", player);
 }
 
+/* =====================
+=========*/
+function autoFitTables() {
+  // נרצה להתאים רק במסכים צרים (טלפון)
+  if (window.innerWidth > 900) {
+    // לנקות אם חוזרים לדסקטופ/לרוחב
+    const wrap = document.querySelector(".table-wrap");
+    const row = document.querySelector(".tables-row");
+    if (wrap) wrap.style.height = "";
+    if (row) {
+      row.style.transform = "";
+      row.classList.remove("tables-autofit");
+    }
+    return;
+  }
+
+  const wrap = document.querySelector(".table-wrap");
+  const row = document.querySelector(".tables-row");
+  if (!wrap || !row) return;
+
+  row.classList.add("tables-autofit");
+
+  // רוחב אמיתי של התוכן (כמה הוא "רוצה" להיות)
+  const contentWidth = row.scrollWidth;
+
+  // סקייל כדי שייכנס למסך (מורידים קצת מרווח)
+  const scale = Math.min(1, (window.innerWidth - 16) / contentWidth);
+
+  row.style.transform = `scale(${scale})`;
+
+  // חשוב: לקבע גובה אחרי סקייל כדי שלא "ידחוף" דברים / ירד למטה
+  const contentHeight = row.scrollHeight;
+  wrap.style.height = `${contentHeight * scale}px`;
+}
 /* =========================
    INIT
    ========================= */
