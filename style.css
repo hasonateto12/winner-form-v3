@@ -375,54 +375,59 @@ body[data-theme="dark"] .toast{
 /* רק תאי ניחושים כשאין אף מנצח */
 .no-winner-pick { background: #ffdd00 !important; }
 
-/* =========================
-   ✅ הגדלת טבלאות (מובייל + כללי)
-   ========================= */
+/* =====================================
+   ✅ FORCE BIG TABLES (override חזק)
+   שים את זה ממש בסוף הקובץ
+   ===================================== */
 
-/* כל הטבלאות */
-table{
-  font-size: 15px;              /* היה 12 */
-}
-
-th, td{
-  padding: 8px 10px;            /* היה 4–5 */
-}
-
-/* כל עמודה תקבל מינימום רוחב */
-th, td{
-  min-width: 46px;
-}
-
-/* טבלת תוצאות – גדולה ונוחה */
-.results-wrap{
-  width: 160px;                 /* היה 110 */
-  flex: 0 0 160px;
-}
-
-.results-wrap th,
-.results-wrap td{
-  font-size: 14px;
-  padding: 8px 8px;
-}
-
-.results-wrap select{
-  font-size: 14px;
-  padding: 8px 8px;
-  height: 36px;
-}
-
-/* מובייל – עוד קצת הגדלה */
+/* מובייל: לא מקטינים, מגדילים + מאפשרים גלילה אופקית */
 @media (max-width: 900px){
+
+  .top-row-fit{
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    width: 100% !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .top-row{
+    transform: none !important;     /* שלא יהיה scale */
+    width: max-content !important;  /* שיהיה אפשר לגלול */
+  }
+
   table{
-    font-size: 17px;
+    font-size: 20px !important;
   }
 
   th, td{
-    padding: 10px 12px;
+    padding: 14px 16px !important;
+    min-width: 72px !important;
   }
 
+  /* טבלת תוצאות יותר רחבה */
   .results-wrap{
-    width: 180px;
-    flex: 0 0 180px;
+    width: 240px !important;
+    flex: 0 0 240px !important;
   }
+
+  .results-wrap th,
+  .results-wrap td{
+    font-size: 19px !important;
+    padding: 14px 12px !important;
+  }
+
+  .results-wrap select{
+    font-size: 19px !important;
+    padding: 12px 10px !important;
+    height: 48px !important;
+  }
+}
+
+/* כללי (גם דסקטופ): קצת הגדלה */
+table{
+  font-size: 16px !important;
+}
+
+th, td{
+  padding: 10px 12px !important;
 }
