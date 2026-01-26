@@ -284,39 +284,30 @@ function autoFitTopRow() {
   const row = document.getElementById("topRow");
   if (!fit || !row) return;
 
-  // בדסקטופ: לא עושים scale
+  // בדסקטופ: אין scale ואין גלילה מיוחדת
   if (window.innerWidth > 900) {
     row.style.transform = "";
     row.style.transformOrigin = "";
     row.style.width = "";
     fit.style.width = "";
     fit.style.height = "";
-    fit.style.overflow = "";
+    fit.style.overflowX = "";
+    fit.style.overflowY = "";
     return;
   }
 
-  // שלא ייחתך
-  fit.style.overflow = "hidden";
-
-  // לנקות לפני מדידה
+  // ✅ מובייל: במקום להקטין — עושים גלילה אופקית, כדי שיהיה גדול וקריא
   row.style.transform = "";
-  row.style.width = "max-content"; // חשוב: מדידה אמיתית של כל הרוחב (משחקים + תוצאות)
-
-  // מודדים אחרי ניקוי
-  const contentW = row.scrollWidth;
-  const contentH = row.scrollHeight;
-
-  // רוחב פנוי אמיתי בתוך הקונטיינר (ולא window)
-  const available = Math.max(260, fit.clientWidth - 8);
-
-  const scale = Math.min(1, available / contentW);
-
   row.style.transformOrigin = "top right";
-  row.style.transform = `scale(${scale})`;
+  row.style.width = "max-content";
 
-  // לקבע את המעטפת לפי הגודל אחרי scale (כדי שלא ידרוס דברים ו"ייכנס" פנימה)
-  fit.style.width = `${contentW * scale}px`;
-  fit.style.height = `${contentH * scale}px`;
+  fit.style.width = "100%";
+  fit.style.height = "auto";
+  fit.style.overflowX = "auto";
+  fit.style.overflowY = "hidden";
+
+  // חווית גלילה טובה באייפון
+  fit.style.webkitOverflowScrolling = "touch";
 }
 
 /* =========================
