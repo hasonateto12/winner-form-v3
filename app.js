@@ -53,6 +53,11 @@ function initThemeToggle() {
 document.addEventListener("DOMContentLoaded", () => {
   initThemeToggle();
   initDataEntryToggle();
+
+  // ✅ התאמה אוטומטית לטלפון
+  autoFitTables();
+  window.addEventListener("resize", autoFitTables);
+  window.addEventListener("orientationchange", autoFitTables);
 });
 
 function initDataEntryToggle() {
