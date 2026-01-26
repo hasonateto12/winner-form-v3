@@ -171,7 +171,7 @@ body[data-theme="dark"] .btn-ghost{
 
 .tables-row{
   display:flex;
-  align-items:flex-start;
+  align-items:flex-start;   /* חשוב: לא למתוח לגובה */
   gap:0;
 }
 
@@ -182,12 +182,19 @@ body[data-theme="dark"] .btn-ghost{
   min-width:0;
 }
 
-/* ✅ FIX: טבלת התוצאות לא נמתחת לגובה */
+/* ✅ תיקון עיקרי – טבלת התוצאות לא נמתחת לגובה */
 .results-wrap{
   flex: 0 0 auto;
   width: auto;
   align-self: flex-start;
-  height: fit-content;
+  height: auto;
+  display: block;
+}
+
+/* ✅ גם ה-card שבתוך התוצאות לא נמתח */
+.results-wrap .card{
+  height: auto !important;
+  align-self: flex-start;
 }
 
 .table-wrap .card{
@@ -323,12 +330,16 @@ body[data-theme="dark"] .toast{
     white-space:nowrap;
   }
 
-  /* ✅ FIX גם במובייל */
+  /* ✅ גם במובייל */
   .results-wrap{
-    width: auto;
     flex: 0 0 auto;
+    width: auto;
     align-self: flex-start;
-    height: fit-content;
+    height: auto;
+  }
+
+  .results-wrap .card{
+    height: auto !important;
   }
 
   .results-wrap th,
