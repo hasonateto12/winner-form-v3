@@ -29,9 +29,7 @@ body{
   color:var(--text);
 }
 
-header{
-  padding:18px 16px;
-}
+header{ padding:18px 16px; }
 
 .header-inner{
   max-width:1200px;
@@ -42,10 +40,7 @@ header{
   gap:12px;
 }
 
-h1{
-  margin:0;
-  font-size:20px;
-}
+h1{ margin:0; font-size:20px; }
 
 .card{
   background:var(--card);
@@ -58,10 +53,7 @@ body[data-theme="dark"] .card{
   border:1px solid rgba(255,255,255,.08);
 }
 
-.card-title{
-  font-weight:700;
-  margin-bottom:10px;
-}
+.card-title{ font-weight:700; margin-bottom:10px; }
 
 .card-body{
   display:flex;
@@ -91,9 +83,7 @@ body[data-theme="dark"] .card{
 }
 
 @media (max-width:900px){
-  .form-grid{
-    grid-template-columns:1fr 1fr;
-  }
+  .form-grid{ grid-template-columns:1fr 1fr; }
 }
 
 input, select{
@@ -121,25 +111,11 @@ body[data-theme="dark"] select{
   user-select:none;
 }
 
-.btn:disabled{
-  opacity:.5;
-  cursor:not-allowed;
-}
+.btn:disabled{ opacity:.5; cursor:not-allowed; }
 
-.btn-primary{
-  background:var(--primary);
-  color:#fff;
-}
-
-.btn-success{
-  background:var(--success);
-  color:#fff;
-}
-
-.btn-danger{
-  background:var(--danger);
-  color:#fff;
-}
+.btn-primary{ background:var(--primary); color:#fff; }
+.btn-success{ background:var(--success); color:#fff; }
+.btn-danger{ background:var(--danger); color:#fff; }
 
 .btn-outline{
   background:transparent;
@@ -164,7 +140,7 @@ body[data-theme="dark"] .btn-ghost{
 .muted{color:var(--muted)}
 
 /* =========================
-   ✅ TABLE LAYOUT (מבנה חדש)
+   ✅ LAYOUT כמו התמונה השנייה
    ========================= */
 
 .table-wrap{
@@ -173,26 +149,33 @@ body[data-theme="dark"] .btn-ghost{
   justify-content:flex-end;
 }
 
-/* עכשיו הכל בעמודה: (1) top-row (2) totals */
-.tables-row{
+/* כל האזור: (עליון) + (תחתון) */
+.tables-stack{
   display:flex;
   flex-direction:column;
-  align-items:stretch;
   gap:0;
 }
 
-/* השורה העליונה: טבלת משחקים + טבלת תוצאות */
+/* למעלה: משחקים + תוצאות */
 .top-row{
   display:flex;
-  align-items:flex-start; /* חשוב: התוצאות לא יימתחו לפי הסיכום */
+  align-items:flex-start;
   gap:0;
 }
 
-/* טבלת התוצאות: רוחב קבוע כמו פעם, אבל גובה רק לפי טבלת המשחקים */
+/* הטבלה הראשית */
+.main-table-card{
+  flex:1 1 auto;
+  min-width:0;
+}
+
+/* טבלת תוצאות משמאל */
 .results-wrap{
   width:140px;
   flex:0 0 140px;
 }
+
+.results-card{ height:auto; }
 
 .table-wrap .card{
   margin:0;
@@ -227,10 +210,7 @@ th, td{
   box-sizing:border-box;
 }
 
-/* טבלת סיכום */
-#totalsTable td{
-  font-weight:700;
-}
+#totalsTable td{ font-weight:700; }
 
 #totalsTable .totals-label{
   text-align:right;
@@ -321,7 +301,7 @@ body[data-theme="dark"] .toast{
 .toast-error .toast-dot{background:#ef4444}
 
 /* =========================
-   Mobile
+   מובייל: גלילה לרוחב לשורה העליונה בלבד
    ========================= */
 @media (max-width:800px){
   .table-wrap{
@@ -329,7 +309,6 @@ body[data-theme="dark"] .toast{
     -webkit-overflow-scrolling:touch;
   }
 
-  /* מה שנגלל לרוחב זה רק השורה העליונה (משחקים+תוצאות) */
   .top-row{
     min-width:900px;
   }
@@ -399,9 +378,4 @@ body[data-theme="dark"] .toast{
 /* רק תאי ניחושים כשאין אף מנצח */
 .no-winner-pick {
   background: #ffdd00 !important;
-}
-/* ✅ Auto-fit tables on phones (portrait) */
-.tables-autofit{
-  transform-origin: top right;
-  will-change: transform;
 }
