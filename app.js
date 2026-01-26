@@ -845,7 +845,7 @@ function renderResultsTable() {
   table.innerHTML = "";
 
   const header = document.createElement("tr");
-  header.innerHTML = `<th>תוצאה</th>`;
+  header.innerHTML = `<th>#</th><th>תוצאה</th>`;
   table.appendChild(header);
 
   const canEditPromise = isExpertPage ? isAdminOk() : Promise.resolve(false);
@@ -854,11 +854,17 @@ function renderResultsTable() {
     table.innerHTML = "";
     table.appendChild(header);
 
-    matches.forEach((m) => {
+    matches.forEach((m, index) => {
       const mid = m.id;
       const tr = document.createElement("tr");
-      const td = document.createElement("td");
+      
+      // תא מספרי
+      const tdNum = document.createElement("td");
+      tdNum.textContent = String(index + 1);
+      tr.appendChild(tdNum);
 
+      // תא תוצאה
+      const td = document.createElement("td");
       if (canEdit) {
         const sel = document.createElement("select");
         sel.setAttribute("data-mid", mid);
