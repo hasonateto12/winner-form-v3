@@ -400,3 +400,8 @@ body[data-theme="dark"] .toast{
 .no-winner-pick {
   background: #ffdd00 !important;
 }
+/* ✅ Auto-fit tables on phones (portrait) */
+.tables-autofit{
+  transform-origin: top right;
+  will-change: transform;
+}
