@@ -140,39 +140,38 @@ body[data-theme="dark"] .btn-ghost{
 .muted{color:var(--muted)}
 
 /* =========================
-   ✅ LAYOUT כמו התמונה השנייה
+   ✅ LAYOUT (כמו תמונה 2)
    ========================= */
-
 .table-wrap{
   width:100%;
   display:flex;
   justify-content:flex-end;
 }
 
-/* כל האזור: (עליון) + (תחתון) */
+/* עליון + תחתון */
 .tables-stack{
   display:flex;
   flex-direction:column;
   gap:0;
 }
 
-/* למעלה: משחקים + תוצאות */
+/* שורה עליונה: משחקים + תוצאות */
 .top-row{
   display:flex;
   align-items:flex-start;
   gap:0;
 }
 
-/* הטבלה הראשית */
+/* הטבלה הראשית תופסת את הרוחב */
 .main-table-card{
   flex:1 1 auto;
   min-width:0;
 }
 
-/* טבלת תוצאות משמאל */
+/* ✅ טבלת תוצאות – צרה יותר */
 .results-wrap{
-  width:140px;
-  flex:0 0 140px;
+  width:110px;
+  flex:0 0 110px;
 }
 
 .results-card{ height:auto; }
@@ -182,34 +181,46 @@ body[data-theme="dark"] .btn-ghost{
   border-radius:0;
 }
 
+/* =========================
+   ✅ TABLES (הקטנה כללית)
+   ========================= */
 table{
   width:100%;
   border-collapse:collapse;
   background:#fff;
   color:#111;
+  font-size:12px;          /* ✅ קטן יותר */
 }
 
 th, td{
   border:1px solid #000;
-  padding:8px;
+  padding:4px 5px;         /* ✅ פחות ריווח */
   text-align:center;
-  font-size:14px;
   vertical-align:middle;
 }
 
+/* טבלת תוצאות עוד טיפה קטנה */
 .results-wrap th,
 .results-wrap td{
-  padding:6px;
-  font-size:13px;
+  font-size:11px;
+  padding:3px 4px;
 }
 
 .results-wrap select{
   width:100%;
-  padding:5px;
+  font-size:11px;
+  padding:3px 4px;
   font-weight:700;
   box-sizing:border-box;
 }
 
+/* הקטנה עדינה לעמודות המשחקים */
+.main-table-card th,
+.main-table-card td{
+  min-width: 40px;
+}
+
+/* סיכום */
 #totalsTable td{ font-weight:700; }
 
 #totalsTable .totals-label{
@@ -230,6 +241,49 @@ th, td{
   border-radius:999px;
   font-size:12px;
   background:#fff;
+}
+
+/* =========================
+   ✅ Mobile: אין גלילה ימינה/שמאלה!
+   עושים SCALE לכל הבלוק כדי שייכנס למסך
+   ========================= */
+@media (max-width:800px){
+  .table-wrap{
+    overflow:hidden; /* ✅ אין גלילה לרוחב */
+  }
+
+  /* סקייל לכל איזור הטבלאות (גם עליון וגם סיכום) */
+  .tables-stack{
+    --s: 0.82;                 /* אפשר לשחק: 0.85 / 0.80 */
+    transform: scale(var(--s));
+    transform-origin: top right;
+    width: calc(100% / var(--s)); /* חשוב כדי שלא ייחתך */
+  }
+
+  /* עוד הקטנה קלה במובייל */
+  table{ font-size:11px; }
+  th, td{ padding:3px 4px; }
+
+  .results-wrap{
+    width:100px;
+    flex:0 0 100px;
+  }
+
+  .results-wrap th,
+  .results-wrap td{
+    font-size:10.5px;
+    padding:3px 3px;
+  }
+
+  .results-wrap select{
+    font-size:10.5px;
+    padding:3px 3px;
+  }
+
+  .main-table-card th,
+  .main-table-card td{
+    min-width: 36px;
+  }
 }
 
 /* =========================
@@ -299,41 +353,6 @@ body[data-theme="dark"] .toast{
 .toast-success .toast-dot{background:#22c55e}
 .toast-warning .toast-dot{background:#f59e0b}
 .toast-error .toast-dot{background:#ef4444}
-
-/* =========================
-   מובייל: גלילה לרוחב לשורה העליונה בלבד
-   ========================= */
-@media (max-width:800px){
-  .table-wrap{
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-  }
-
-  .top-row{
-    min-width:900px;
-  }
-
-  th, td{
-    padding:5px 6px;
-    font-size:13px;
-    white-space:nowrap;
-  }
-
-  .results-wrap{
-    width:140px;
-    flex:0 0 140px;
-  }
-
-  .results-wrap th,
-  .results-wrap td{
-    padding:6px;
-    font-size:13px;
-  }
-
-  .results-wrap select{
-    padding:5px 6px;
-  }
-}
 
 /* =========================
    Data entry panel
