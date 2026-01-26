@@ -54,10 +54,10 @@ document.addEventListener("DOMContentLoaded", () => {
   initThemeToggle();
   initDataEntryToggle();
 
-  // ✅ התאמה אוטומטית לטלפון
-  autoFitTables();
-  window.addEventListener("resize", autoFitTables);
-  window.addEventListener("orientationchange", autoFitTables);
+  // ✅ התאמה אוטומטית לטלפון (בלי חיתוך)
+  autoFitTopRow();
+  window.addEventListener("resize", autoFitTopRow);
+  window.addEventListener("orientationchange", autoFitTopRow);
 });
 
 function initDataEntryToggle() {
@@ -132,16 +132,12 @@ function upsertPlayerAt(playersArr, name, index) {
 
 /* =========================
    ✅ NEW: Populate controls for ordering
-   (Optional HTML elements)
-   - #addPlayerPos: select with values: end | start | after
-   - #addPlayerAfter: select of player names (used when addPlayerPos = after)
    ========================= */
 function populateAddPlayerControls() {
   const posSel = document.getElementById("addPlayerPos");
   const afterSel = document.getElementById("addPlayerAfter");
   if (!posSel && !afterSel) return;
 
-  // אם יש after select – נמלא אותו
   if (afterSel) {
     const players = getPlayersOrder();
     const cur = afterSel.value;
@@ -151,7 +147,6 @@ function populateAddPlayerControls() {
     if (players.includes(cur)) afterSel.value = cur;
   }
 
-  // ניהול disabled לפי pos
   if (posSel && afterSel) {
     const apply = () => {
       afterSel.disabled = posSel.value !== "after";
@@ -162,7 +157,7 @@ function populateAddPlayerControls() {
 }
 
 /* =========================
-   ✅ Populate delete-player control (Select or Input+Autocomplete)
+   ✅ Populate delete-player control
    ========================= */
 function populateDeletePlayerControl() {
   const el = document.getElementById("deletePlayerName");
@@ -170,7 +165,6 @@ function populateDeletePlayerControl() {
 
   const players = getPlayersOrder();
 
-  // If it's a SELECT, fill options
   if (el.tagName === "SELECT") {
     const currentVal = el.value;
     el.innerHTML =
@@ -180,7 +174,6 @@ function populateDeletePlayerControl() {
     return;
   }
 
-  // Otherwise assume INPUT: add datalist for autocomplete
   let dl = document.getElementById("deletePlayersList");
   if (!dl) {
     dl = document.createElement("datalist");
@@ -281,40 +274,46 @@ function guessDocRef(player) {
   return doc(db, "forms", formId, "guesses", player);
 }
 
-/* =====================
-=========*/
-function autoFitTables() {
-  // נרצה להתאים רק במסכים צרים (טלפון)
+/* =========================
+   ✅ AUTO FIT (בלי חיתוך!)
+   מתאים רק לשורה העליונה: משחקים + תוצאות
+   נדרש HTML: .top-row-fit + #topRow
+   ========================= */
+function autoFitTopRow() {
+  const fit = document.querySelector(".top-row-fit");
+  const row = document.getElementById("topRow");
+  if (!fit || !row) return;
+
+  // בדסקטופ/לרוחב: לנקות
   if (window.innerWidth > 900) {
-    // לנקות אם חוזרים לדסקטופ/לרוחב
-    const wrap = document.querySelector(".table-wrap");
-    const row = document.querySelector(".tables-row");
-    if (wrap) wrap.style.height = "";
-    if (row) {
-      row.style.transform = "";
-      row.classList.remove("tables-autofit");
-    }
+    row.style.transform = "";
+    fit.style.width = "";
+    fit.style.height = "";
+    fit.style.overflow = "";
     return;
   }
 
-  const wrap = document.querySelector(".table-wrap");
-  const row = document.querySelector(".tables-row");
-  if (!wrap || !row) return;
+  // לא לחתוך
+  fit.style.overflow = "hidden";
 
-  row.classList.add("tables-autofit");
+  // לנקות טרנספורם לפני מדידה
+  row.style.transform = "";
 
-  // רוחב אמיתי של התוכן (כמה הוא "רוצה" להיות)
-  const contentWidth = row.scrollWidth;
+  const contentW = row.scrollWidth;
+  const contentH = row.scrollHeight;
 
-  // סקייל כדי שייכנס למסך (מורידים קצת מרווח)
-  const scale = Math.min(1, (window.innerWidth - 16) / contentWidth);
+  // רוחב פנוי (מורידים קצת מרווח)
+  const available = Math.max(260, window.innerWidth - 12);
+  const scale = Math.min(1, available / contentW);
 
+  row.style.transformOrigin = "top right";
   row.style.transform = `scale(${scale})`;
 
-  // חשוב: לקבע גובה אחרי סקייל כדי שלא "ידחוף" דברים / ירד למטה
-  const contentHeight = row.scrollHeight;
-  wrap.style.height = `${contentHeight * scale}px`;
+  // חשוב מאוד: לקבע רוחב/גובה אחרי scale כדי שלא ייחתך
+  fit.style.width = `${contentW * scale}px`;
+  fit.style.height = `${contentH * scale}px`;
 }
+
 /* =========================
    INIT
    ========================= */
@@ -357,7 +356,7 @@ function getGuessState() {
    ✅ Rowspan by RUNS (sequences only)
    ========================= */
 function buildRunSpans(list, keyFn) {
-  const spans = {}; // startIndex -> length
+  const spans = {};
   let i = 0;
   while (i < list.length) {
     const key = keyFn(list[i]);
@@ -389,7 +388,6 @@ async function initExpert() {
   const newPlayerNameEl = document.getElementById("newPlayerName");
   const deletePlayerNameEl = document.getElementById("deletePlayerName");
 
-  // ✅ עריכה נפרדת
   const editCard = document.getElementById("editCard");
   const editIndexEl = document.getElementById("editIndex");
   const btnLoadEdit = document.getElementById("btnLoadEdit");
@@ -476,7 +474,6 @@ async function initExpert() {
     if (btnStopGuess) btnStopGuess.disabled = false;
     if (btnLoadEdit) btnLoadEdit.disabled = false;
 
-    // אם קיימת אצלך הפונקציה copyCaptureAreaImage במקום אחר - זה יעבוד
     if (btnCopyImage) {
       btnCopyImage.disabled = false;
       if (typeof copyCaptureAreaImage === "function") {
@@ -509,7 +506,6 @@ async function initExpert() {
     formData.finalResults = d.finalResults && typeof d.finalResults === "object" ? d.finalResults : {};
     formData.players = Array.isArray(d.players) ? d.players : DEFAULT_PLAYERS.slice();
 
-    // רענון בקרים
     populateDeletePlayerControl();
     populateAddPlayerControls();
 
@@ -520,6 +516,9 @@ async function initExpert() {
 
     renderExpertGuessStatus(guessStatus);
     startExpertTicker(guessStatus);
+
+    // ✅ אחרי כל רינדור – להתאים למסך
+    requestAnimationFrame(autoFitTopRow);
   });
 
   const matchForm = document.getElementById("matchForm");
@@ -597,19 +596,6 @@ async function initExpert() {
     exitEditMode();
   });
 
-  /**
-   * ✅ הוספת שחקן עם בחירת מיקום
-   * אם יש לך ב-HTML:
-   * - <select id="addPlayerPos">
-   *     <option value="end">בסוף</option>
-   *     <option value="start">בהתחלה</option>
-   *     <option value="after">אחרי שחקן</option>
-   *   </select>
-   * - <select id="addPlayerAfter"></select>
-   *
-   * אז זה יתמוך בזה אוטומטית.
-   * אם אין לך את האלמנטים האלה, ברירת מחדל: הוספה לסוף.
-   */
   btnAddPlayer?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
@@ -633,7 +619,6 @@ async function initExpert() {
       const afterIndex = current.findIndex((p) => normName(p) === normName(realAfter));
       updated = upsertPlayerAt(current, name, afterIndex + 1);
     } else {
-      // end (default)
       updated = upsertPlayerAt(current, name, current.length);
     }
 
@@ -647,9 +632,10 @@ async function initExpert() {
 
     if (newPlayerNameEl) newPlayerNameEl.value = "";
     toast("שחקן נוסף ✅", "success");
+
+    requestAnimationFrame(autoFitTopRow);
   });
 
-  /* ✅✅ DELETE PLAYER (works also for any player) */
   btnDeletePlayer?.addEventListener("click", async () => {
     if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
 
@@ -684,6 +670,8 @@ async function initExpert() {
 
     if (deletePlayerNameEl) deletePlayerNameEl.value = "";
     toast("שחקן נמחק ✅", "success");
+
+    requestAnimationFrame(autoFitTopRow);
   });
 
   btnStartGuess?.addEventListener("click", async () => {
@@ -751,6 +739,8 @@ async function initExpert() {
 
     document.getElementById("deleteIndex").value = "";
     toast("המשחק נמחק ✅", "success");
+
+    requestAnimationFrame(autoFitTopRow);
   });
 
   btnClear?.addEventListener("click", async () => {
@@ -779,8 +769,10 @@ async function initExpert() {
     populateAddPlayerControls();
 
     toast("הטבלה נוקתה ✅", "success");
+
+    requestAnimationFrame(autoFitTopRow);
   });
-} // ✅ סוף initExpert
+} // סוף initExpert
 
 function disableExpertActions() {
   const ids = [
@@ -897,12 +889,10 @@ function renderResultsTable() {
       const mid = m.id;
       const tr = document.createElement("tr");
 
-      // מספר שורה
       const tdNum = document.createElement("td");
       tdNum.textContent = String(index + 1);
       tr.appendChild(tdNum);
 
-      // תוצאה
       const td = document.createElement("td");
 
       if (canEdit) {
@@ -927,6 +917,8 @@ function renderResultsTable() {
 
           await updateDoc(formRef(), { finalResults: updated });
           toast("התוצאה עודכנה ✅", "success", 1600);
+
+          requestAnimationFrame(autoFitTopRow);
         });
 
         td.appendChild(sel);
@@ -937,9 +929,10 @@ function renderResultsTable() {
       tr.appendChild(td);
       table.appendChild(tr);
     });
+
+    requestAnimationFrame(autoFitTopRow);
   });
 }
-
 
 function renderExpertTable() {
   const table = document.getElementById("mainTable");
@@ -968,22 +961,18 @@ function renderExpertTable() {
     const m = matches[r];
     const tr = document.createElement("tr");
 
- const matchId = m.id;
-const finalRes = formData.finalResults?.[matchId] || "";
+    const matchId = m.id;
+    const finalRes = formData.finalResults?.[matchId] || "";
 
-// האם יש לפחות שחקן אחד שפגע?
-let hasWinner = false;
-if (finalRes) {
-  for (const player of PLAYERS_ORDER) {
-    const pick = guessesByPlayer[player]?.[matchId] || "";
-    if (pick === finalRes) { hasWinner = true; break; }
-  }
-}
+    let hasWinner = false;
+    if (finalRes) {
+      for (const player of PLAYERS_ORDER) {
+        const pick = guessesByPlayer[player]?.[matchId] || "";
+        if (pick === finalRes) { hasWinner = true; break; }
+      }
+    }
 
-// האם צריך לצבוע צהוב את תאי הניחושים?
-const markNoWinner = !!finalRes && !hasWinner;
-
-
+    const markNoWinner = !!finalRes && !hasWinner;
 
     tr.insertAdjacentHTML("beforeend", `<td>${r + 1}</td>`);
 
@@ -1004,25 +993,26 @@ const markNoWinner = !!finalRes && !hasWinner;
     tr.insertAdjacentHTML("beforeend", `<td>${m.home || ""}</td>`);
     tr.insertAdjacentHTML("beforeend", `<td>${m.away || ""}</td>`);
 
-   PLAYERS_ORDER.forEach((player) => {
-  const pick = guessesByPlayer[player]?.[matchId] || "";
-  const isGreen = !!finalRes && pick === finalRes;
+    PLAYERS_ORDER.forEach((player) => {
+      const pick = guessesByPlayer[player]?.[matchId] || "";
+      const isGreen = !!finalRes && pick === finalRes;
 
-  const td = document.createElement("td");
-  td.textContent = pick;
+      const td = document.createElement("td");
+      td.textContent = pick;
 
-  if (isGreen) {
-    td.style.background = "#b6fcb6";
-  } else if (markNoWinner) {
-    td.classList.add("no-winner-pick");
-  }
+      if (isGreen) {
+        td.style.background = "#b6fcb6";
+      } else if (markNoWinner) {
+        td.classList.add("no-winner-pick");
+      }
 
-  tr.appendChild(td);
-});
-
+      tr.appendChild(td);
+    });
 
     table.appendChild(tr);
   }
+
+  requestAnimationFrame(autoFitTopRow);
 }
 
 function renderTotalsOutside() {
@@ -1098,6 +1088,8 @@ function renderTotalsOutside() {
   });
 
   totalsTable.appendChild(totalsRow);
+
+  requestAnimationFrame(autoFitTopRow);
 }
 
 /* ===================== PLAYER ===================== */
