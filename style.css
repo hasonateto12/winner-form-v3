@@ -135,7 +135,7 @@ body[data-theme="dark"] .btn-ghost{
 .muted{color:var(--muted)}
 
 /* =========================
-   ✅ Layout: כמו תמונה 2
+   ✅ Layout: טבלת תוצאות ליד משחקים (לא בתוך)
    ========================= */
 .table-wrap{
   width:100%;
@@ -151,35 +151,49 @@ body[data-theme="dark"] .btn-ghost{
   width:100%;
 }
 
-/* עטיפת התאמה (ה-JS קובע מידות כדי שלא ייחתך) */
+/* עטיפת התאמה */
 .top-row-fit{
   width:100%;
   overflow:hidden;
 }
 
-/* השורה העליונה (משחקים + תוצאות) */
+/* ✅ שורה עליונה: שתי טבלאות ליד אחת השנייה */
 .top-row{
   display:flex;
-  align-items:flex-start;
+  width:100%;
+  align-items:stretch;
   gap:0;
   transform-origin: top right;
+
+  /* חשוב: לא לתת ל-RTL “לבלבל” את הסדר */
+  flex-direction: row;
 }
 
 /* טבלת משחקים */
 .main-table-card{
-  flex:1 1 auto;
+  flex: 1 1 auto;
   min-width:0;
+
+  /* כדי שהחיבור עם התוצאות ייראה כמו בתמונה 2 */
+  border-inline-start: 0;
+  border-radius:0;
 }
 
-/* טבלת תוצאות – צרה */
+/* ✅ טבלת תוצאות – “כרטיס” נפרד ליד */
 .results-wrap{
   width:110px;
   flex:0 0 110px;
 }
 
+.results-card{
+  height:100%;
+  border-inline-end: 0;
+  border-radius:0;
+}
+
+/* מבטל רווחים/עיגולים כדי שיראה כמו טבלה אחת מחוברת */
 .table-wrap .card{
   margin:0;
-  border-radius:0;
 }
 
 /* =========================
@@ -188,8 +202,8 @@ body[data-theme="dark"] .btn-ghost{
 table{
   width:100%;
   border-collapse:collapse;
-  background:#fff;
-  color:#111;
+  background:var(--card);
+  color:var(--text);
   font-size:12px;
 }
 
