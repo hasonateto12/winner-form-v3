@@ -284,32 +284,37 @@ function autoFitTopRow() {
   const row = document.getElementById("topRow");
   if (!fit || !row) return;
 
-  // בדסקטופ/לרוחב: לנקות
+  // בדסקטופ: לא עושים scale
   if (window.innerWidth > 900) {
     row.style.transform = "";
+    row.style.transformOrigin = "";
+    row.style.width = "";
     fit.style.width = "";
     fit.style.height = "";
     fit.style.overflow = "";
     return;
   }
 
-  // לא לחתוך
+  // שלא ייחתך
   fit.style.overflow = "hidden";
 
-  // לנקות טרנספורם לפני מדידה
+  // לנקות לפני מדידה
   row.style.transform = "";
+  row.style.width = "max-content"; // חשוב: מדידה אמיתית של כל הרוחב (משחקים + תוצאות)
 
+  // מודדים אחרי ניקוי
   const contentW = row.scrollWidth;
   const contentH = row.scrollHeight;
 
-  // רוחב פנוי (מורידים קצת מרווח)
-  const available = Math.max(260, window.innerWidth - 12);
+  // רוחב פנוי אמיתי בתוך הקונטיינר (ולא window)
+  const available = Math.max(260, fit.clientWidth - 8);
+
   const scale = Math.min(1, available / contentW);
 
   row.style.transformOrigin = "top right";
   row.style.transform = `scale(${scale})`;
 
-  // חשוב מאוד: לקבע רוחב/גובה אחרי scale כדי שלא ייחתך
+  // לקבע את המעטפת לפי הגודל אחרי scale (כדי שלא ידרוס דברים ו"ייכנס" פנימה)
   fit.style.width = `${contentW * scale}px`;
   fit.style.height = `${contentH * scale}px`;
 }
@@ -873,41 +878,57 @@ function renderResultsTable() {
   const matches = formData.matches || [];
   const finals = formData.finalResults || {};
 
+  // ננקה
   table.innerHTML = "";
 
-  const header = document.createElement("tr");
-  header.innerHTML = `<th>#</th><th>תוצאה</th>`;
-  table.appendChild(header);
+  // ניצור Header חדש כל פעם (לא ממחזרים Node)
+  const makeHeader = () => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<th>#</th><th>תוצאה</th>`;
+    return tr;
+  };
+
+  // מוסיף header התחלתי (עד שמגיע canEdit)
+  table.appendChild(makeHeader());
 
   const canEditPromise = isExpertPage ? isAdminOk() : Promise.resolve(false);
 
   canEditPromise.then((canEdit) => {
+    // רנדר מלא מחדש אחרי שיש לנו הרשאות
     table.innerHTML = "";
-    table.appendChild(header);
+    table.appendChild(makeHeader());
 
     matches.forEach((m, index) => {
       const mid = m.id;
+
       const tr = document.createElement("tr");
 
       const tdNum = document.createElement("td");
       tdNum.textContent = String(index + 1);
       tr.appendChild(tdNum);
 
-      const td = document.createElement("td");
+      const tdRes = document.createElement("td");
 
       if (canEdit) {
         const sel = document.createElement("select");
-        sel.setAttribute("data-mid", mid);
+        sel.dataset.mid = mid;
+
         sel.innerHTML = `
           <option value=""></option>
           <option value="1">1</option>
           <option value="X">X</option>
           <option value="2">2</option>
         `;
+
         sel.value = finals[mid] || "";
 
         sel.addEventListener("change", async () => {
-          if (!(await isAdminOk())) return toast("אין הרשאה (קישור מומחה בלבד)", "error");
+          if (!(await isAdminOk())) {
+            toast("אין הרשאה (קישור מומחה בלבד)", "error");
+            // להחזיר ערך קודם אם אין הרשאה
+            sel.value = finals[mid] || "";
+            return;
+          }
 
           const next = sel.value || "";
           const updated = { ...(formData.finalResults || {}) };
@@ -916,17 +937,20 @@ function renderResultsTable() {
           else updated[mid] = next;
 
           await updateDoc(formRef(), { finalResults: updated });
-          toast("התוצאה עודכנה ✅", "success", 1600);
 
+          // עדכון מקומי כדי שלא “יקפוץ” UI
+          formData.finalResults = updated;
+
+          toast("התוצאה עודכנה ✅", "success", 1600);
           requestAnimationFrame(autoFitTopRow);
         });
 
-        td.appendChild(sel);
+        tdRes.appendChild(sel);
       } else {
-        td.textContent = finals[mid] || "";
+        tdRes.textContent = finals[mid] || "";
       }
 
-      tr.appendChild(td);
+      tr.appendChild(tdRes);
       table.appendChild(tr);
     });
 
