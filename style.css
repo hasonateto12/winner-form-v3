@@ -156,7 +156,8 @@ body[data-theme="dark"] .btn-ghost{
   width:100%;
   overflow:hidden;
 }
-
+.top-row-fit { position: relative; }
+.top-row { will-change: transform; }
 /* ✅ שורה עליונה: שתי טבלאות ליד אחת השנייה */
 .top-row{
   display:flex;
