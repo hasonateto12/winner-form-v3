@@ -1,3 +1,4 @@
+
 :root{
   --bg:#f6f7fb;
   --card:#ffffff;
@@ -20,11 +21,6 @@ body[data-theme="dark"]{
 }
 
 *{box-sizing:border-box}
-
-/* ✅ مهم: خلي الصفحة نفسها طولها 100% عشان نقدر نملأ الشاشة */
-html, body{
-  height:100%;
-}
 
 body{
   margin:0;
@@ -141,17 +137,12 @@ body[data-theme="dark"] .btn-ghost{
 
 /* =========================
    ✅ Layout: טבלת תוצאות ליד משחקים (לא בתוך)
-   + ✅ ملء الشاشة (بدون فراغ تحت)
    ========================= */
 .table-wrap{
   width:100%;
   display:flex;
   justify-content:flex-end;
   padding: 0 8px 18px;
-
-  /* ✅ يخلي منطقة الجداول تتمدد لتملأ الشاشة */
-  min-height: calc(100vh - 140px); /* إذا بدك أكبر جرّب 120px أو 100px */
-  align-items: stretch;
 }
 
 .tables-stack{
@@ -159,26 +150,15 @@ body[data-theme="dark"] .btn-ghost{
   flex-direction:column;
   gap:0;
   width:100%;
-
-  /* ✅ تمدد كامل داخل table-wrap */
-  flex: 1;
-  min-height: 100%;
 }
 
 /* עטיפת התאמה */
 .top-row-fit{
   width:100%;
   overflow:hidden;
-
-  /* ✅ خلي الصف العلوي ياخذ أكبر مساحة */
-  flex: 1;
-  display:flex;
-  align-items: stretch;
-
-  position: relative;
 }
 
-/* ✅ شوية نعومة للـtransform */
+/* ✅ שורה עליונה: שתי טבלאות ליד אחת השנייה */
 .top-row{
   display:flex;
   width:100%;
@@ -186,10 +166,8 @@ body[data-theme="dark"] .btn-ghost{
   gap:0;
   transform-origin: top right;
 
-  /* مهم: لا تعكس RTL ترتيب flex */
+  /* חשוב: לא לתת ל-RTL “לבלבל” את הסדר */
   flex-direction: row;
-
-  will-change: transform;
 }
 
 /* טבלת משחקים */
@@ -200,9 +178,6 @@ body[data-theme="dark"] .btn-ghost{
   /* כדי שהחיבור עם התוצאות ייראה כמו בתמונה 2 */
   border-inline-start: 0;
   border-radius:0;
-
-  /* ✅ تمدد */
-  height: 100%;
 }
 
 /* ✅ טבלת תוצאות – “כרטיס” נפרד ליד */
@@ -215,22 +190,6 @@ body[data-theme="dark"] .btn-ghost{
   height:100%;
   border-inline-end: 0;
   border-radius:0;
-
-  /* ✅ تمدد */
-  height: 100%;
-}
-
-/* اجعل جسم الكارد يتمدد (المهم للملء العمودي) */
-.main-table-card .card-body,
-.results-card .card-body{
-  flex: 1;
-  height: 100%;
-}
-
-/* بطاقة السummary أسفل */
-.totals-card{
-  /* ✅ خليها تظهر بدون ما تترك فراغ كبير */
-  margin-top: 12px;
 }
 
 /* מבטל רווחים/עיגולים כדי שיראה כמו טבלה אחת מחוברת */
@@ -239,39 +198,37 @@ body[data-theme="dark"] .btn-ghost{
 }
 
 /* =========================
-   ✅ Tables (تكبير بسيط وواضح)
+   ✅ Tables (קומפקטי)
    ========================= */
 table{
   width:100%;
   border-collapse:collapse;
   background:var(--card);
   color:var(--text);
-
-  /* ✅ تكبير للعين */
-  font-size:13px;
+  font-size:12px;
 }
 
 th, td{
   border:1px solid #000;
-  padding:5px 6px;           /* ✅ أكبر شوي */
+  padding:4px 5px;
   text-align:center;
   vertical-align:middle;
 }
 
-/* تוצאות أقل شوي حتى ما تسرق مساحة */
+/* תוצאות עוד יותר קומפקטי */
 .results-wrap th,
 .results-wrap td{
-  font-size:12px;
-  padding:4px 4px;
+  font-size:11px;
+  padding:3px 4px;
 }
 .results-wrap select{
   width:100%;
-  font-size:12px;
-  padding:4px 4px;
+  font-size:11px;
+  padding:3px 4px;
   font-weight:700;
 }
 
-/* سיכום */
+/* סיכום */
 #totalsTable td{ font-weight:700; }
 #totalsTable .totals-label{
   text-align:right;
@@ -296,23 +253,20 @@ th, td{
    ========================= */
 @media (max-width:800px){
   .table-wrap{ overflow-x:hidden; }
+  table{ font-size:11px; }
+  th, td{ padding:3px 4px; }
 
-  /* ✅ خلي الجدول أكبر من قبل شوي */
-  table{ font-size:12px; }
-  th, td{ padding:4px 5px; }
-
-  /* ✅ قلل عرض جدول النتائج ليكبر كل شيء */
   .results-wrap{
-    width:90px;
-    flex:0 0 90px;
+    width:100px;
+    flex:0 0 100px;
   }
   .results-wrap th,
   .results-wrap td{
-    font-size:11px;
+    font-size:10.5px;
     padding:3px 3px;
   }
   .results-wrap select{
-    font-size:11px;
+    font-size:10.5px;
     padding:3px 3px;
   }
 }
