@@ -284,7 +284,7 @@ function autoFitTopRow() {
   const row = document.getElementById("topRow");
   if (!fit || !row) return;
 
-  // בדסקטופ: אין scale ואין גלילה מיוחדת
+  // ديسكتوب: بدون تصغير وبدون إعدادات خاصة
   if (window.innerWidth > 900) {
     row.style.transform = "";
     row.style.transformOrigin = "";
@@ -293,23 +293,32 @@ function autoFitTopRow() {
     fit.style.height = "";
     fit.style.overflowX = "";
     fit.style.overflowY = "";
+    fit.style.webkitOverflowScrolling = "";
     return;
   }
 
-  // ✅ מובייל: במקום להקטין — עושים גלילה אופקית, כדי שיהיה גדול וקריא
-  row.style.transform = "";
-  row.style.transformOrigin = "top right";
-  row.style.width = "max-content";
-
+  // ✅ موبايل: تصغير (scale) بدل سحب يمين/يسار
+  // نزيل أي Scroll أفقي
   fit.style.width = "100%";
-  fit.style.height = "auto";
-  fit.style.overflowX = "auto";
+  fit.style.overflowX = "hidden";
   fit.style.overflowY = "hidden";
+  fit.style.webkitOverflowScrolling = "";
 
-  // חווית גלילה טובה באייפון
-  fit.style.webkitOverflowScrolling = "touch";
+  // نخلي العرض حسب المحتوى عشان نحسب scrollWidth صح
+  row.style.width = "max-content";
+  row.style.transformOrigin = "top right";
+
+  // حساب التصغير المطلوب ليدخل داخل العرض المتاح
+  const fitW = fit.clientWidth;
+  const rowW = row.scrollWidth;
+
+  const scale = rowW > fitW ? fitW / rowW : 1;
+
+  row.style.transform = `scale(${scale})`;
+
+  // ضبط ارتفاع الحاوية حتى لا ينقص/ينقص المحتوى بعد التصغير
+  fit.style.height = `${row.scrollHeight * scale}px`;
 }
-
 /* =========================
    INIT
    ========================= */
