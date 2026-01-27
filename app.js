@@ -284,40 +284,39 @@ function autoFitTopRow() {
   const row = document.getElementById("topRow");
   if (!fit || !row) return;
 
-  // ديسكتوب: لا نعمل تكبير أو تصغير
+  // ديسكتوب: بدون أي تكبير
   if (window.innerWidth > 900) {
     row.style.transform = "";
     row.style.transformOrigin = "";
     row.style.width = "";
-    fit.style.width = "";
     fit.style.height = "";
     fit.style.overflow = "";
     return;
   }
 
-  // 📱 موبايل: تكبير أو تصغير تلقائي لملء الشاشة
+  // 📱 موبايل: تكبير بالطول فقط (بدون توسيع العرض)
   fit.style.width = "100%";
   fit.style.overflow = "hidden";
 
-  row.style.width = "max-content";
-  row.style.transformOrigin = "top right";
+  row.style.width = "100%";
+  row.style.transformOrigin = "top center";
 
-  const fitW = fit.clientWidth;     // عرض الشاشة المتاح
-  const rowW = row.scrollWidth;    // العرض الحقيقي للجداول
+  const fitH = window.innerHeight * 0.75;   // المساحة المتاحة للطول
+  const rowH = row.scrollHeight;
 
-  if (!fitW || !rowW) return;
+  if (!fitH || !rowH) return;
 
-  // 🔍 حساب التكبير أو التصغير
-  let scale = fitW / rowW;
+  let scaleY = fitH / rowH;
 
-  // 🛑 حدود آمنة (حتى لا يكبر أو يصغر بشكل مبالغ)
-  scale = Math.max(0.85, Math.min(scale, 0.9));
+  // حدود آمنة للتكبير
+  scaleY = Math.max(1, Math.min(scaleY, 1.8));
 
-  row.style.transform = `scale(${scale})`;
+  row.style.transform = `scaleY(${scaleY})`;
 
-  // ضبط الارتفاع حتى لا ينقص المحتوى
-  fit.style.height = `${row.scrollHeight * scale}px`;
+  // تصحيح الارتفاع بعد التكبير
+  fit.style.height = `${rowH * scaleY}px`;
 }
+
 
 /* =========================
    INIT
