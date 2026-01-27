@@ -311,7 +311,7 @@ function autoFitTopRow() {
   let scale = fitW / rowW;
 
   // 🛑 حدود آمنة (حتى لا يكبر أو يصغر بشكل مبالغ)
-  scale = Math.max(0.85, Math.min(scale, 1.6));
+  scale = Math.max(0.85, Math.min(scale, 0.9));
 
   row.style.transform = `scale(${scale})`;
 
