@@ -282,45 +282,42 @@ function guessDocRef(player) {
   function autoFitTopRow() {
   const fit = document.querySelector(".top-row-fit");
   const row = document.getElementById("topRow");
-  const mainCard = document.querySelector(".main-table-card");
-  const resultsWrap = document.querySelector(".results-wrap");
-  if (!fit || !row || !mainCard || !resultsWrap) return;
+  if (!fit || !row) return;
 
-  // ديسكتوب: رجّع الوضع الطبيعي
+  // ديسكتوب: بدون تصغير وبدون إعدادات خاصة
   if (window.innerWidth > 900) {
-    mainCard.style.transform = "";
-    mainCard.style.transformOrigin = "";
-    resultsWrap.style.transform = "";
-    resultsWrap.style.transformOrigin = "";
+    row.style.transform = "";
+    row.style.transformOrigin = "";
+    row.style.width = "";
+    fit.style.width = "";
     fit.style.height = "";
-    fit.style.overflow = "";
+    fit.style.overflowX = "";
+    fit.style.overflowY = "";
+    fit.style.webkitOverflowScrolling = "";
     return;
   }
 
-  // موبايل: نمنع أي سحب ونكبر بالطول فقط "لكل جدول لوحده"
+  // ✅ موبايل: تصغير (scale) بدل سحب يمين/يسار
+  // نزيل أي Scroll أفقي
   fit.style.width = "100%";
-  fit.style.overflow = "hidden";
+  fit.style.overflowX = "hidden";
+  fit.style.overflowY = "hidden";
+  fit.style.webkitOverflowScrolling = "";
 
-  // نحسب مساحة الارتفاع المتاحة (خففها/زودها إذا بدك)
-  const fitH = window.innerHeight * 0.68;
+  // نخلي العرض حسب المحتوى عشان نحسب scrollWidth صح
+  row.style.width = "max-content";
+  row.style.transformOrigin = "top right";
 
-  // ارتفاع الصف الحالي (بدون تكبير)
-  const rowH = row.scrollHeight;
-  if (!fitH || !rowH) return;
+  // حساب التصغير المطلوب ليدخل داخل العرض المتاح
+  const fitW = fit.clientWidth;
+  const rowW = row.scrollWidth;
 
-  // scaleY فقط (بدون توسيع عرض)
-  let scaleY = fitH / rowH;
-  scaleY = Math.max(1, Math.min(scaleY, 1.6));
+  const scale = rowW > fitW ? fitW / rowW : 1;
 
-  // ✅ التكبير يُطبق على كل جزء لوحده، مش على الحاوية كلها
-  mainCard.style.transformOrigin = "top right";
-  mainCard.style.transform = `scaleY(${scaleY})`;
+  row.style.transform = `scale(${scale})`;
 
-  resultsWrap.style.transformOrigin = "top right";
-  resultsWrap.style.transform = `scaleY(${scaleY})`;
-
-  // ضبط ارتفاع الحاوية بعد التكبير
-  fit.style.height = `${rowH * scaleY}px`;
+  // ضبط ارتفاع الحاوية حتى لا ينقص/ينقص المحتوى بعد التصغير
+  fit.style.height = `${row.scrollHeight * scale}px`;
 }
 
 
