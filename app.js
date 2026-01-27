@@ -301,7 +301,7 @@ function autoFitTopRow() {
   row.style.transformOrigin = "top right";
   row.style.width = "max-content";
 
-  fit.style.width = "60%";
+  fit.style.width = "100%";
   fit.style.height = "auto";
   fit.style.overflowX = "auto";
   fit.style.overflowY = "hidden";
