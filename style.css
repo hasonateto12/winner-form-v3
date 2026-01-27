@@ -377,10 +377,3 @@ body[data-theme="dark"] .toast{
 
 /* רק תאי ניחושים כשאין אף מנצח */
 .no-winner-pick { background: #ffdd00 !important; }
-
-/* يمنع أي تداخل بصري عند التكبير */
-.main-table-card,
-.results-wrap{
-  will-change: transform;
-  backface-visibility: hidden;
-}
