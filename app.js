@@ -284,41 +284,41 @@ function autoFitTopRow() {
   const row = document.getElementById("topRow");
   if (!fit || !row) return;
 
-  // ديسكتوب: بدون تصغير وبدون إعدادات خاصة
+  // ديسكتوب: لا نعمل تكبير أو تصغير
   if (window.innerWidth > 900) {
     row.style.transform = "";
     row.style.transformOrigin = "";
     row.style.width = "";
     fit.style.width = "";
     fit.style.height = "";
-    fit.style.overflowX = "";
-    fit.style.overflowY = "";
-    fit.style.webkitOverflowScrolling = "";
+    fit.style.overflow = "";
     return;
   }
 
-  // ✅ موبايل: تصغير (scale) بدل سحب يمين/يسار
-  // نزيل أي Scroll أفقي
+  // 📱 موبايل: تكبير أو تصغير تلقائي لملء الشاشة
   fit.style.width = "100%";
-  fit.style.overflowX = "hidden";
-  fit.style.overflowY = "hidden";
-  fit.style.webkitOverflowScrolling = "";
+  fit.style.overflow = "hidden";
 
-  // نخلي العرض حسب المحتوى عشان نحسب scrollWidth صح
   row.style.width = "max-content";
   row.style.transformOrigin = "top right";
 
-  // حساب التصغير المطلوب ليدخل داخل العرض المتاح
-  const fitW = fit.clientWidth;
-  const rowW = row.scrollWidth;
+  const fitW = fit.clientWidth;     // عرض الشاشة المتاح
+  const rowW = row.scrollWidth;    // العرض الحقيقي للجداول
 
-  const scale = rowW > fitW ? fitW / rowW : 1;
+  if (!fitW || !rowW) return;
+
+  // 🔍 حساب التكبير أو التصغير
+  let scale = fitW / rowW;
+
+  // 🛑 حدود آمنة (حتى لا يكبر أو يصغر بشكل مبالغ)
+  scale = Math.max(0.85, Math.min(scale, 1.6));
 
   row.style.transform = `scale(${scale})`;
 
-  // ضبط ارتفاع الحاوية حتى لا ينقص/ينقص المحتوى بعد التصغير
+  // ضبط الارتفاع حتى لا ينقص المحتوى
   fit.style.height = `${row.scrollHeight * scale}px`;
 }
+
 /* =========================
    INIT
    ========================= */
