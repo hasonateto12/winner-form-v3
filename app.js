@@ -279,41 +279,47 @@ function guessDocRef(player) {
    מתאים רק לשורה העליונה: משחקים + תוצאות
    נדרש HTML: .top-row-fit + #topRow
    ========================= */
-function autoFitTopRow() {
+  function autoFitTopRow() {
   const fit = document.querySelector(".top-row-fit");
   const row = document.getElementById("topRow");
-  if (!fit || !row) return;
+  const mainCard = document.querySelector(".main-table-card");
+  const resultsWrap = document.querySelector(".results-wrap");
+  if (!fit || !row || !mainCard || !resultsWrap) return;
 
-  // ديسكتوب: بدون أي تكبير
+  // ديسكتوب: رجّع الوضع الطبيعي
   if (window.innerWidth > 900) {
-    row.style.transform = "";
-    row.style.transformOrigin = "";
-    row.style.width = "";
+    mainCard.style.transform = "";
+    mainCard.style.transformOrigin = "";
+    resultsWrap.style.transform = "";
+    resultsWrap.style.transformOrigin = "";
     fit.style.height = "";
     fit.style.overflow = "";
     return;
   }
 
-  // 📱 موبايل: تكبير بالطول فقط (بدون توسيع العرض)
+  // موبايل: نمنع أي سحب ونكبر بالطول فقط "لكل جدول لوحده"
   fit.style.width = "100%";
   fit.style.overflow = "hidden";
 
-  row.style.width = "100%";
-  row.style.transformOrigin = "top center";
+  // نحسب مساحة الارتفاع المتاحة (خففها/زودها إذا بدك)
+  const fitH = window.innerHeight * 0.68;
 
-  const fitH = window.innerHeight * 0.75;   // المساحة المتاحة للطول
+  // ارتفاع الصف الحالي (بدون تكبير)
   const rowH = row.scrollHeight;
-
   if (!fitH || !rowH) return;
 
+  // scaleY فقط (بدون توسيع عرض)
   let scaleY = fitH / rowH;
+  scaleY = Math.max(1, Math.min(scaleY, 1.6));
 
-  // حدود آمنة للتكبير
-  scaleY = Math.max(1, Math.min(scaleY, 1.8));
+  // ✅ التكبير يُطبق على كل جزء لوحده، مش على الحاوية كلها
+  mainCard.style.transformOrigin = "top right";
+  mainCard.style.transform = `scaleY(${scaleY})`;
 
-  row.style.transform = `scaleY(${scaleY})`;
+  resultsWrap.style.transformOrigin = "top right";
+  resultsWrap.style.transform = `scaleY(${scaleY})`;
 
-  // تصحيح الارتفاع بعد التكبير
+  // ضبط ارتفاع الحاوية بعد التكبير
   fit.style.height = `${rowH * scaleY}px`;
 }
 
