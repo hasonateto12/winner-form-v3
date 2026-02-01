@@ -279,12 +279,12 @@ function guessDocRef(player) {
    מתאים רק לשורה העליונה: משחקים + תוצאות
    נדרש HTML: .top-row-fit + #topRow
    ========================= */
-  function autoFitTopRow() {
+function autoFitTopRow() {
   const fit = document.querySelector(".top-row-fit");
   const row = document.getElementById("topRow");
   if (!fit || !row) return;
 
-  // ديسكتوب: بدون تصغير وبدون إعدادات خاصة
+  // Desktop: no scaling
   if (window.innerWidth > 900) {
     row.style.transform = "";
     row.style.transformOrigin = "";
@@ -297,29 +297,162 @@ function guessDocRef(player) {
     return;
   }
 
-  // ✅ موبايل: تصغير (scale) بدل سحب يمين/يسار
-  // نزيل أي Scroll أفقي
+  // Mobile: scale to fit
   fit.style.width = "100%";
   fit.style.overflowX = "hidden";
   fit.style.overflowY = "hidden";
   fit.style.webkitOverflowScrolling = "";
 
-  // نخلي العرض حسب المحتوى عشان نحسب scrollWidth صح
   row.style.width = "max-content";
   row.style.transformOrigin = "top right";
 
-  // حساب التصغير المطلوب ليدخل داخل العرض المتاح
   const fitW = fit.clientWidth;
   const rowW = row.scrollWidth;
-
   const scale = rowW > fitW ? fitW / rowW : 1;
 
   row.style.transform = `scale(${scale})`;
-
-  // ضبط ارتفاع الحاوية حتى لا ينقص/ينقص المحتوى بعد التصغير
   fit.style.height = `${row.scrollHeight * scale}px`;
 }
 
+/* =========================
+   📰 NEWS (Dynamic)
+   ========================= */
+function badge(cls, text) {
+  return `<div class="news-badge ${cls || ""}">${text}</div>`;
+}
+function newsItem(badgeHtml, textHtml) {
+  return `<div class="news-item">${badgeHtml}<div class="news-text">${textHtml}</div></div>`;
+}
+function safeText(s) {
+  return String(s ?? "").replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]));
+}
+function matchLabel(m, index) {
+  // שם יפה למשחק (כולל בית/חוץ + ליגה/יום אם יש)
+  const parts = [];
+  const home = (m.home || "").trim();
+  const away = (m.away || "").trim();
+  const league = (m.league || "").trim();
+  const day = (m.day || "").trim();
+
+  if (home || away) parts.push(`${home}${home && away ? " – " : ""}${away}`);
+  else parts.push(`משחק ${index + 1}`);
+
+  if (league) parts.push(league);
+  if (day) parts.push(day);
+
+  return parts.join(" · ");
+}
+
+function buildNews() {
+  if (!isExpertPage) return;
+  const track = document.getElementById("newsTrack");
+  if (!track) return;
+
+  const players = getPlayersOrder();
+  const matches = formData.matches || [];
+  const finals = formData.finalResults || {};
+  const items = [];
+
+  // אם אין בכלל משחקים
+  if (!matches.length) {
+    track.innerHTML = newsItem(badge("blue", "עדכון"), "אין משחקים עדיין — הוסף משחקים כדי להתחיל 🧾");
+    return;
+  }
+
+  // מוביל כולל
+  const totals = {};
+  players.forEach((p) => (totals[p] = 0));
+
+  // חדשות לפי כל משחק שיש לו תוצאה
+  for (let i = 0; i < matches.length; i++) {
+    const m = matches[i];
+    const mid = m.id;
+    const res = finals[mid] || "";
+    if (!res) continue; // בלי תוצאה -> אין חדשות למשחק
+
+    const winners = [];
+    for (const p of players) {
+      const pick = guessesByPlayer[p]?.[mid] || "";
+      if (pick && pick === res) winners.push(p);
+    }
+
+    const label = safeText(matchLabel(m, i));
+
+    // עדכון totals
+    for (const p of winners) totals[p] += 1;
+
+    // תנאים שביקשת
+    if (winners.length === 1) {
+      items.push(
+        newsItem(
+          badge("green", "זכייה"),
+          `ב־<b>${label}</b> רק <b>${safeText(winners[0])}</b> תפס/ה נכון — וזכה/תה במשחק הזה ✅`
+        )
+      );
+    } else if (winners.length === 0) {
+      items.push(
+        newsItem(
+          badge("blue", "פספוס"),
+          `ב־<b>${label}</b> אף אחד לא תפס — כולם פספסו ❌`
+        )
+      );
+    } else if (winners.length === players.length) {
+      items.push(
+        newsItem(
+          badge("green", "כולם!"),
+          `ב־<b>${label}</b> כולם תפסו — עבודה יפה 🔥`
+        )
+      );
+    } else {
+      // (לא ביקשת, אבל זה מוסיף עניין. אם לא רוצה – תגיד ואסיר)
+      items.push(
+        newsItem(
+          badge("", "פגעו"),
+          `ב־<b>${label}</b> פגעו: <b>${winners.map(safeText).join(" , ")}</b>`
+        )
+      );
+    }
+  }
+
+  // מוביל עד עכשיו
+  const vals = players.map((p) => totals[p] || 0);
+  const max = vals.length ? Math.max(...vals) : 0;
+
+  if (max <= 0) {
+    items.unshift(
+      newsItem(
+        badge("purple", "טיפ"),
+        `כשתכניס תוצאות בטבלת התוצאות — החדשות יתמלאו אוטומטית 😉`
+      )
+    );
+  } else {
+    const leaders = players.filter((p) => (totals[p] || 0) === max);
+    if (leaders.length === 1) {
+      items.unshift(
+        newsItem(
+          badge("green", "מוביל"),
+          `<b>${safeText(leaders[0])}</b> מוביל/ה עד עכשיו עם <b>${max}</b> ניחושים נכונים — כרגע הזוכה 🏆`
+        )
+      );
+    } else {
+      items.unshift(
+        newsItem(
+          badge("green", "צמרת"),
+          `תיקו בצמרת בין <b>${leaders.map(safeText).join(" , ")}</b> עם <b>${max}</b> ניחושים נכונים 🏆`
+        )
+      );
+    }
+  }
+
+  if (!items.length) {
+    track.innerHTML = newsItem(badge("blue", "עדכון"), "עדיין אין תוצאות מוזנות — כשתבחר תוצאות, תראה חדשות כאן.");
+    return;
+  }
+
+  // רינדור + שכפול לגלילה אינסופית
+  track.innerHTML = items.join("");
+  track.innerHTML += track.innerHTML;
+}
 
 /* =========================
    INIT
@@ -524,6 +657,9 @@ async function initExpert() {
     renderExpertGuessStatus(guessStatus);
     startExpertTicker(guessStatus);
 
+    // ✅ חדשות מתעדכנות אחרי כל רינדור
+    buildNews();
+
     // ✅ אחרי כל רינדור – להתאים למסך
     requestAnimationFrame(autoFitTopRow);
   });
@@ -640,6 +776,9 @@ async function initExpert() {
     if (newPlayerNameEl) newPlayerNameEl.value = "";
     toast("שחקן נוסף ✅", "success");
 
+    // ✅ עדכון חדשות
+    buildNews();
+
     requestAnimationFrame(autoFitTopRow);
   });
 
@@ -677,6 +816,9 @@ async function initExpert() {
 
     if (deletePlayerNameEl) deletePlayerNameEl.value = "";
     toast("שחקן נמחק ✅", "success");
+
+    // ✅ עדכון חדשות
+    buildNews();
 
     requestAnimationFrame(autoFitTopRow);
   });
@@ -747,6 +889,9 @@ async function initExpert() {
     document.getElementById("deleteIndex").value = "";
     toast("המשחק נמחק ✅", "success");
 
+    // ✅ עדכון חדשות
+    buildNews();
+
     requestAnimationFrame(autoFitTopRow);
   });
 
@@ -776,6 +921,9 @@ async function initExpert() {
     populateAddPlayerControls();
 
     toast("הטבלה נוקתה ✅", "success");
+
+    // ✅ עדכון חדשות
+    buildNews();
 
     requestAnimationFrame(autoFitTopRow);
   });
@@ -880,23 +1028,19 @@ function renderResultsTable() {
   const matches = formData.matches || [];
   const finals = formData.finalResults || {};
 
-  // ננקה
   table.innerHTML = "";
 
-  // ניצור Header חדש כל פעם (לא ממחזרים Node)
   const makeHeader = () => {
     const tr = document.createElement("tr");
     tr.innerHTML = `<th>#</th><th>תוצאה</th>`;
     return tr;
   };
 
-  // מוסיף header התחלתי (עד שמגיע canEdit)
   table.appendChild(makeHeader());
 
   const canEditPromise = isExpertPage ? isAdminOk() : Promise.resolve(false);
 
   canEditPromise.then((canEdit) => {
-    // רנדר מלא מחדש אחרי שיש לנו הרשאות
     table.innerHTML = "";
     table.appendChild(makeHeader());
 
@@ -927,7 +1071,6 @@ function renderResultsTable() {
         sel.addEventListener("change", async () => {
           if (!(await isAdminOk())) {
             toast("אין הרשאה (קישור מומחה בלבד)", "error");
-            // להחזיר ערך קודם אם אין הרשאה
             sel.value = finals[mid] || "";
             return;
           }
@@ -940,10 +1083,13 @@ function renderResultsTable() {
 
           await updateDoc(formRef(), { finalResults: updated });
 
-          // עדכון מקומי כדי שלא “יקפוץ” UI
           formData.finalResults = updated;
 
           toast("התוצאה עודכנה ✅", "success", 1600);
+
+          // ✅ עדכון חדשות מיד אחרי שינוי תוצאה
+          buildNews();
+
           requestAnimationFrame(autoFitTopRow);
         });
 
@@ -955,6 +1101,9 @@ function renderResultsTable() {
       tr.appendChild(tdRes);
       table.appendChild(tr);
     });
+
+    // ✅ עדכון חדשות אחרי רינדור
+    buildNews();
 
     requestAnimationFrame(autoFitTopRow);
   });
@@ -1038,6 +1187,9 @@ function renderExpertTable() {
     table.appendChild(tr);
   }
 
+  // ✅ עדכון חדשות אחרי רינדור
+  buildNews();
+
   requestAnimationFrame(autoFitTopRow);
 }
 
@@ -1114,6 +1266,9 @@ function renderTotalsOutside() {
   });
 
   totalsTable.appendChild(totalsRow);
+
+  // ✅ עדכון חדשות אחרי סיכום
+  buildNews();
 
   requestAnimationFrame(autoFitTopRow);
 }
