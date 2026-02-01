@@ -95,18 +95,10 @@ function initDataEntryToggle() {
    ========================= */
 const DEFAULT_PLAYERS = ["חגי", "ראזי", "סעיד", "ווסים", "אביאל", "צביר", "שמעון"];
 
-/**
- * ✅ שינוי חשוב:
- * הסדר בטבלה הוא בדיוק הסדר ששמור ב-Firestore בתוך formData.players.
- * לכן אם תמחק שחקן ותוסיף מחדש "בסוף" — הוא באמת יופיע בסוף.
- */
 function getPlayersOrder() {
   return Array.isArray(formData.players) ? formData.players : DEFAULT_PLAYERS.slice();
 }
 
-/* =========================
-   ✅ NEW: Normalize player names + match existing name reliably
-   ========================= */
 function normName(s) {
   return String(s || "").replace(/\s+/g, " ").trim();
 }
@@ -115,11 +107,6 @@ function findExistingPlayerName(playersArr, inputName) {
   return (playersArr || []).find((p) => normName(p) === target) || "";
 }
 
-/**
- * מכניס/מעדכן שחקן במיקום מסוים:
- * - אם קיים: מוחק ואז מכניס במיקום שבחרת
- * - אם חדש: מכניס במיקום שבחרת
- */
 function upsertPlayerAt(playersArr, name, index) {
   const n = normName(name);
   const base = Array.isArray(playersArr) ? [...playersArr] : [];
@@ -130,9 +117,6 @@ function upsertPlayerAt(playersArr, name, index) {
   return cleaned;
 }
 
-/* =========================
-   ✅ NEW: Populate controls for ordering
-   ========================= */
 function populateAddPlayerControls() {
   const posSel = document.getElementById("addPlayerPos");
   const afterSel = document.getElementById("addPlayerAfter");
@@ -156,9 +140,6 @@ function populateAddPlayerControls() {
   }
 }
 
-/* =========================
-   ✅ Populate delete-player control
-   ========================= */
 function populateDeletePlayerControl() {
   const el = document.getElementById("deletePlayerName");
   if (!el) return;
@@ -276,15 +257,12 @@ function guessDocRef(player) {
 
 /* =========================
    ✅ AUTO FIT (בלי חיתוך!)
-   מתאים רק לשורה העליונה: משחקים + תוצאות
-   נדרש HTML: .top-row-fit + #topRow
    ========================= */
 function autoFitTopRow() {
   const fit = document.querySelector(".top-row-fit");
   const row = document.getElementById("topRow");
   if (!fit || !row) return;
 
-  // Desktop: no scaling
   if (window.innerWidth > 900) {
     row.style.transform = "";
     row.style.transformOrigin = "";
@@ -297,7 +275,6 @@ function autoFitTopRow() {
     return;
   }
 
-  // Mobile: scale to fit
   fit.style.width = "100%";
   fit.style.overflowX = "hidden";
   fit.style.overflowY = "hidden";
@@ -315,19 +292,17 @@ function autoFitTopRow() {
 }
 
 /* =========================
-   📰 NEWS (Dynamic)
+   📰 NEWS (פריט אחד כל 3 שניות)
    ========================= */
-function badge(cls, text) {
-  return `<div class="news-badge ${cls || ""}">${text}</div>`;
-}
-function newsItem(badgeHtml, textHtml) {
-  return `<div class="news-item">${badgeHtml}<div class="news-text">${textHtml}</div></div>`;
-}
+let newsItems = [];
+let newsIndex = 0;
+let newsIntervalId = null;
+
 function safeText(s) {
   return String(s ?? "").replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]));
 }
+
 function matchLabel(m, index) {
-  // שם יפה למשחק (כולל בית/חוץ + ליגה/יום אם יש)
   const parts = [];
   const home = (m.home || "").trim();
   const away = (m.away || "").trim();
@@ -343,32 +318,73 @@ function matchLabel(m, index) {
   return parts.join(" · ");
 }
 
-function buildNews() {
-  if (!isExpertPage) return;
-  const track = document.getElementById("newsTrack");
-  if (!track) return;
+function renderCurrentNews() {
+  const host = document.getElementById("newsTrack");
+  if (!host) return;
 
-  const players = getPlayersOrder();
-  const matches = formData.matches || [];
-  const finals = formData.finalResults || {};
-  const items = [];
-
-  // אם אין בכלל משחקים
-  if (!matches.length) {
-    track.innerHTML = newsItem(badge("blue", "עדכון"), "אין משחקים עדיין — הוסף משחקים כדי להתחיל 🧾");
+  if (!newsItems.length) {
+    host.innerHTML = `
+      <div class="news-item is-fade">
+        <div class="news-badge blue">עדכון</div>
+        <div class="news-text">עדיין אין חדשות — כשתבחר תוצאות המשחקים, יופיעו כאן משפטים אוטומטית.</div>
+      </div>
+    `;
     return;
   }
 
-  // מוביל כולל
+  if (newsIndex >= newsItems.length) newsIndex = 0;
+  const item = newsItems[newsIndex];
+
+  host.innerHTML = `
+    <div class="news-item is-fade">
+      <div class="news-badge ${item.badgeClass || ""}">${item.badgeText}</div>
+      <div class="news-text">${item.html}</div>
+    </div>
+  `;
+}
+
+function startNewsRotation() {
+  if (newsIntervalId) clearInterval(newsIntervalId);
+  // כל 3 שניות מחליף
+  newsIntervalId = setInterval(() => {
+    if (!newsItems.length) return;
+    newsIndex = (newsIndex + 1) % newsItems.length;
+    renderCurrentNews();
+  }, 3000);
+}
+
+function rebuildNews() {
+  if (!isExpertPage) return;
+
+  const players = getPlayersOrder();
+  const matches = formData.matches || [];
+  const finals = formData.finalResults || [];
+
+  const items = [];
+
+  if (!matches.length) {
+    newsItems = [{
+      badgeText: "עדכון",
+      badgeClass: "blue",
+      html: "אין משחקים עדיין — הוסף משחקים כדי להתחיל 🧾"
+    }];
+    newsIndex = 0;
+    renderCurrentNews();
+    startNewsRotation();
+    return;
+  }
+
+  // חישוב מוביל
   const totals = {};
   players.forEach((p) => (totals[p] = 0));
 
-  // חדשות לפי כל משחק שיש לו תוצאה
+  // חדשות לפי משחקים שיש להם תוצאה
+  const finalsObj = formData.finalResults || {};
   for (let i = 0; i < matches.length; i++) {
     const m = matches[i];
     const mid = m.id;
-    const res = finals[mid] || "";
-    if (!res) continue; // בלי תוצאה -> אין חדשות למשחק
+    const res = finalsObj[mid] || "";
+    if (!res) continue;
 
     const winners = [];
     for (const p of players) {
@@ -378,80 +394,67 @@ function buildNews() {
 
     const label = safeText(matchLabel(m, i));
 
-    // עדכון totals
-    for (const p of winners) totals[p] += 1;
+    // totals
+    winners.forEach((p) => totals[p] += 1);
 
-    // תנאים שביקשת
+    // המשפטים שביקשת
     if (winners.length === 1) {
-      items.push(
-        newsItem(
-          badge("green", "זכייה"),
-          `ב־<b>${label}</b> רק <b>${safeText(winners[0])}</b> תפס/ה נכון — וזכה/תה במשחק הזה ✅`
-        )
-      );
+      items.push({
+        badgeText: "זכייה",
+        badgeClass: "green",
+        html: `ב־<b>${label}</b> רק <b>${safeText(winners[0])}</b> תפס/ה נכון — וזכה/תה במשחק הזה ✅`
+      });
     } else if (winners.length === 0) {
-      items.push(
-        newsItem(
-          badge("blue", "פספוס"),
-          `ב־<b>${label}</b> אף אחד לא תפס — כולם פספסו ❌`
-        )
-      );
+      items.push({
+        badgeText: "פספוס",
+        badgeClass: "blue",
+        html: `ב־<b>${label}</b> אף אחד לא תפס — כולם פספסו ❌`
+      });
     } else if (winners.length === players.length) {
-      items.push(
-        newsItem(
-          badge("green", "כולם!"),
-          `ב־<b>${label}</b> כולם תפסו — עבודה יפה 🔥`
-        )
-      );
-    } else {
-      // (לא ביקשת, אבל זה מוסיף עניין. אם לא רוצה – תגיד ואסיר)
-      items.push(
-        newsItem(
-          badge("", "פגעו"),
-          `ב־<b>${label}</b> פגעו: <b>${winners.map(safeText).join(" , ")}</b>`
-        )
-      );
+      items.push({
+        badgeText: "כולם!",
+        badgeClass: "green",
+        html: `ב־<b>${label}</b> כולם תפסו — עבודה יפה 🔥`
+      });
     }
   }
 
-  // מוביל עד עכשיו
-  const vals = players.map((p) => totals[p] || 0);
-  const max = vals.length ? Math.max(...vals) : 0;
+  // מוביל עד עכשיו (לפי totals)
+  const values = players.map((p) => totals[p] || 0);
+  const max = values.length ? Math.max(...values) : 0;
 
-  if (max <= 0) {
-    items.unshift(
-      newsItem(
-        badge("purple", "טיפ"),
-        `כשתכניס תוצאות בטבלת התוצאות — החדשות יתמלאו אוטומטית 😉`
-      )
-    );
-  } else {
+  if (max > 0) {
     const leaders = players.filter((p) => (totals[p] || 0) === max);
     if (leaders.length === 1) {
-      items.unshift(
-        newsItem(
-          badge("green", "מוביל"),
-          `<b>${safeText(leaders[0])}</b> מוביל/ה עד עכשיו עם <b>${max}</b> ניחושים נכונים — כרגע הזוכה 🏆`
-        )
-      );
+      items.unshift({
+        badgeText: "מוביל",
+        badgeClass: "green",
+        html: `<b>${safeText(leaders[0])}</b> מוביל/ה עד עכשיו עם <b>${max}</b> ניחושים נכונים — כרגע הזוכה 🏆`
+      });
     } else {
-      items.unshift(
-        newsItem(
-          badge("green", "צמרת"),
-          `תיקו בצמרת בין <b>${leaders.map(safeText).join(" , ")}</b> עם <b>${max}</b> ניחושים נכונים 🏆`
-        )
-      );
+      items.unshift({
+        badgeText: "צמרת",
+        badgeClass: "green",
+        html: `תיקו בצמרת בין <b>${leaders.map(safeText).join(" , ")}</b> עם <b>${max}</b> ניחושים נכונים 🏆`
+      });
     }
+  } else {
+    items.unshift({
+      badgeText: "טיפ",
+      badgeClass: "purple",
+      html: "כשתכניס תוצאות בטבלת התוצאות — החדשות יתמלאו אוטומטית 😉"
+    });
   }
 
-  if (!items.length) {
-    track.innerHTML = newsItem(badge("blue", "עדכון"), "עדיין אין תוצאות מוזנות — כשתבחר תוצאות, תראה חדשות כאן.");
-    return;
+  // אם אין בכלל תוצאות מוזנות עדיין
+  if (items.length === 1 && items[0].badgeText === "טיפ") {
+    // נשאר רק הטיפ, זה בסדר
   }
 
-  // רינדור + שכפול לגלילה אינסופית
-  track.innerHTML = items.join("");
-  track.innerHTML += track.innerHTML;
+  newsItems = items;
+  newsIndex = 0;
+  renderCurrentNews();
+  startNewsRotation();
 }
 
 /* =========================
@@ -466,13 +469,6 @@ if (isPlayerPage) initPlayer();
 function localDatetimeValueToMs(v) {
   const d = new Date(v);
   return d.getTime();
-}
-function msToLocalDatetimeValue(ms) {
-  const d = new Date(ms);
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-    d.getHours()
-  )}:${pad(d.getMinutes())}`;
 }
 
 /* =========================
@@ -493,7 +489,7 @@ function getGuessState() {
 }
 
 /* =========================
-   ✅ Rowspan by RUNS (sequences only)
+   ✅ Rowspan by RUNS
    ========================= */
 function buildRunSpans(list, keyFn) {
   const spans = {};
@@ -657,10 +653,9 @@ async function initExpert() {
     renderExpertGuessStatus(guessStatus);
     startExpertTicker(guessStatus);
 
-    // ✅ חדשות מתעדכנות אחרי כל רינדור
-    buildNews();
+    // ✅ לבנות חדשות מחדש בכל שינוי נתונים
+    rebuildNews();
 
-    // ✅ אחרי כל רינדור – להתאים למסך
     requestAnimationFrame(autoFitTopRow);
   });
 
@@ -776,9 +771,7 @@ async function initExpert() {
     if (newPlayerNameEl) newPlayerNameEl.value = "";
     toast("שחקן נוסף ✅", "success");
 
-    // ✅ עדכון חדשות
-    buildNews();
-
+    rebuildNews();
     requestAnimationFrame(autoFitTopRow);
   });
 
@@ -817,9 +810,7 @@ async function initExpert() {
     if (deletePlayerNameEl) deletePlayerNameEl.value = "";
     toast("שחקן נמחק ✅", "success");
 
-    // ✅ עדכון חדשות
-    buildNews();
-
+    rebuildNews();
     requestAnimationFrame(autoFitTopRow);
   });
 
@@ -889,9 +880,7 @@ async function initExpert() {
     document.getElementById("deleteIndex").value = "";
     toast("המשחק נמחק ✅", "success");
 
-    // ✅ עדכון חדשות
-    buildNews();
-
+    rebuildNews();
     requestAnimationFrame(autoFitTopRow);
   });
 
@@ -922,9 +911,7 @@ async function initExpert() {
 
     toast("הטבלה נוקתה ✅", "success");
 
-    // ✅ עדכון חדשות
-    buildNews();
-
+    rebuildNews();
     requestAnimationFrame(autoFitTopRow);
   });
 } // סוף initExpert
@@ -1087,8 +1074,8 @@ function renderResultsTable() {
 
           toast("התוצאה עודכנה ✅", "success", 1600);
 
-          // ✅ עדכון חדשות מיד אחרי שינוי תוצאה
-          buildNews();
+          // ✅ חדשות מתעדכנות מיד
+          rebuildNews();
 
           requestAnimationFrame(autoFitTopRow);
         });
@@ -1102,9 +1089,7 @@ function renderResultsTable() {
       table.appendChild(tr);
     });
 
-    // ✅ עדכון חדשות אחרי רינדור
-    buildNews();
-
+    rebuildNews();
     requestAnimationFrame(autoFitTopRow);
   });
 }
@@ -1175,11 +1160,8 @@ function renderExpertTable() {
       const td = document.createElement("td");
       td.textContent = pick;
 
-      if (isGreen) {
-        td.style.background = "#b6fcb6";
-      } else if (markNoWinner) {
-        td.classList.add("no-winner-pick");
-      }
+      if (isGreen) td.style.background = "#b6fcb6";
+      else if (markNoWinner) td.classList.add("no-winner-pick");
 
       tr.appendChild(td);
     });
@@ -1187,9 +1169,7 @@ function renderExpertTable() {
     table.appendChild(tr);
   }
 
-  // ✅ עדכון חדשות אחרי רינדור
-  buildNews();
-
+  rebuildNews();
   requestAnimationFrame(autoFitTopRow);
 }
 
@@ -1267,9 +1247,7 @@ function renderTotalsOutside() {
 
   totalsTable.appendChild(totalsRow);
 
-  // ✅ עדכון חדשות אחרי סיכום
-  buildNews();
-
+  rebuildNews();
   requestAnimationFrame(autoFitTopRow);
 }
 
@@ -1387,7 +1365,6 @@ function startPlayerTicker(el, btnSave) {
   playerTimerInterval = setInterval(() => renderPlayerTimer(el, btnSave), 1000);
 }
 
-/* טבלת שחקנים: רק בית | חוץ | ניחוש */
 function renderPlayerTable() {
   const table = document.getElementById("playerTable");
   if (!table) return;
