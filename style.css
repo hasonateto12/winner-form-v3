@@ -135,7 +135,7 @@ body[data-theme="dark"] .btn-ghost{
 .muted{color:var(--muted)}
 
 /* =========================
-   ✅ Layout: טבלת תוצאות ליד משחקים (לא בתוך)
+   ✅ Layout: טבלת תוצאות ליד משחקים
    ========================= */
 .table-wrap{
   width:100%;
@@ -159,15 +159,13 @@ body[data-theme="dark"] .btn-ghost{
 .top-row-fit { position: relative; }
 .top-row { will-change: transform; }
 
-/* ✅ שורה עליונה: שתי טבלאות ליד אחת השנייה */
+/* שורה עליונה */
 .top-row{
   display:flex;
   width:100%;
   align-items:stretch;
   gap:0;
   transform-origin: top right;
-
-  /* חשוב: לא לתת ל-RTL “לבלבל” את הסדר */
   flex-direction: row;
 }
 
@@ -175,30 +173,26 @@ body[data-theme="dark"] .btn-ghost{
 .main-table-card{
   flex: 1 1 auto;
   min-width:0;
-
   border-inline-start: 0;
   border-radius:0;
 }
 
-/* ✅ טבלת תוצאות – “כרטיס” נפרד ליד */
+/* טבלת תוצאות */
 .results-wrap{
   width:110px;
   flex:0 0 110px;
 }
-
 .results-card{
   height:100%;
   border-inline-end: 0;
   border-radius:0;
 }
 
-/* מבטל רווחים/עיגולים כדי שיראה כמו טבלה אחת מחוברת */
-.table-wrap .card{
-  margin:0;
-}
+/* מבטל רווחים */
+.table-wrap .card{ margin:0; }
 
 /* =========================
-   ✅ Tables (קומפקטי)
+   Tables
    ========================= */
 table{
   width:100%;
@@ -215,7 +209,7 @@ th, td{
   vertical-align:middle;
 }
 
-/* תוצאות עוד יותר קומפקטי */
+/* תוצאות קומפקטי */
 .results-wrap th,
 .results-wrap td{
   font-size:11px;
@@ -228,7 +222,7 @@ th, td{
   font-weight:700;
 }
 
-/* ✅ במצב כהה - שהעמודה של התוצאות לא "תיעלם" */
+/* מצב כהה - תוצאות לא נעלמות */
 body[data-theme="dark"] .results-wrap table,
 body[data-theme="dark"] .results-wrap th,
 body[data-theme="dark"] .results-wrap td{
@@ -265,9 +259,7 @@ body[data-theme="dark"] .results-wrap select{
   background:#fff;
 }
 
-/* =========================
-   Mobile tweaks
-   ========================= */
+/* מובייל */
 @media (max-width:800px){
   .table-wrap{ overflow-x:hidden; }
   table{ font-size:11px; }
@@ -394,7 +386,7 @@ body[data-theme="dark"] .toast{
 .no-winner-pick { background: #ffdd00 !important; }
 
 /* =========================
-   📰 NEWS (Sea style)
+   📰 NEWS (פריט אחד כל פעם)
    ========================= */
 .news-card{
   width:100%;
@@ -441,30 +433,27 @@ body[data-theme="dark"] .news-header{
 .news-title{ font-weight: 900; letter-spacing: 0.3px; }
 .news-sub{ opacity: 0.8; font-size: 13px; }
 
-.news-marquee{
-  position:relative;
-  padding: 10px 10px 14px;
+/* אזור הצגה לפריט אחד */
+.news-stage{
+  position: relative;
+  padding: 12px 12px 14px;
   overflow: hidden;
 }
 
+/* container שמקבל פריט אחד */
 .news-track{
-  display:flex;
-  gap:10px;
-  align-items:stretch;
-  width:max-content;
-  animation: newsScroll 22s linear infinite;
-  padding: 2px 2px 6px;
+  position: relative;
+  min-height: 52px;
 }
 
+/* כרטיס פריט */
 .news-item{
-  min-width: 320px;
-  max-width: 560px;
   display:flex;
   gap:10px;
   align-items:center;
-  padding: 10px 12px;
+  padding: 12px 12px;
   border-radius: 12px;
-  background: rgba(255,255,255,0.75);
+  background: rgba(255,255,255,0.78);
   border: 1px solid rgba(0,0,0,0.08);
   box-shadow: 0 8px 18px rgba(0,0,0,0.12);
   backdrop-filter: blur(8px);
@@ -502,16 +491,15 @@ body[data-theme="dark"] .news-item{
   font-weight: 800;
 }
 
-.news-card:hover .news-track{
-  animation-play-state: paused;
+/* אפקט מעבר */
+.news-item.is-fade{
+  animation: newsFade 280ms ease;
 }
-
-@keyframes newsScroll{
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+@keyframes newsFade{
+  from{ opacity:0; transform: translateY(4px); }
+  to{ opacity:1; transform: translateY(0); }
 }
 
 @media (max-width: 700px){
-  .news-item{ min-width: 260px; }
   .news-sub{ display:none; }
 }
