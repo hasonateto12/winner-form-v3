@@ -10,7 +10,7 @@
   --shadow:0 8px 30px rgba(0,0,0,.07);
 
   /* ✅ Background image name */
-  --bg-image: url("stadium.jpg");
+ --bg-image: url("./stadium.jpg");
   --bg-overlay: rgba(0,0,0,.45);
   --bg-overlay-dark: rgba(0,0,0,.65);
 }
