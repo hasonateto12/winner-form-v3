@@ -8,11 +8,6 @@
   --danger:#dc2626;
   --ghost:#f3f4f6;
   --shadow:0 8px 30px rgba(0,0,0,.07);
-
-  /* ✅ Background image name */
- --bg-image: url("./stadium.jpg");
-  --bg-overlay: rgba(0,0,0,.45);
-  --bg-overlay-dark: rgba(0,0,0,.65);
 }
 
 body[data-theme="dark"]{
@@ -32,36 +27,6 @@ body{
   font-family: Arial, Helvetica, sans-serif;
   background:var(--bg);
   color:var(--text);
-
-  /* ✅ needed for background layering */
-  position: relative;
-  min-height: 100vh;
-}
-
-/* ✅ Stadium background image (behind everything) */
-body::before{
-  content:"";
-  position: fixed;
-  inset: 0;
-  background-image: var(--bg-image);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  z-index: -2;
-  transform: scale(1.03);
-}
-
-/* ✅ Overlay to keep content readable */
-body::after{
-  content:"";
-  position: fixed;
-  inset: 0;
-  background: var(--bg-overlay);
-  z-index: -1;
-}
-
-body[data-theme="dark"]::after{
-  background: var(--bg-overlay-dark);
 }
 
 header{ padding:18px 16px; }
@@ -75,29 +40,17 @@ header{ padding:18px 16px; }
   gap:12px;
 }
 
-h1{
-  margin:0;
-  font-size:20px;
-
-  /* ✅ better readability on stadium background */
-  color:#fff;
-  text-shadow: 0 3px 14px rgba(0,0,0,.6);
-}
+h1{ margin:0; font-size:20px; }
 
 .card{
   background:var(--card);
   box-shadow:var(--shadow);
   border:1px solid rgba(0,0,0,.08);
   padding:14px;
-
-  /* ✅ glass effect without touching tables */
-  background: rgba(255,255,255,.93);
-  backdrop-filter: blur(6px);
 }
 
 body[data-theme="dark"] .card{
   border:1px solid rgba(255,255,255,.08);
-  background: rgba(17,24,39,.90);
 }
 
 .card-title{ font-weight:700; margin-bottom:10px; }
@@ -206,7 +159,7 @@ body[data-theme="dark"] .btn-ghost{
 .top-row-fit { position: relative; }
 .top-row { will-change: transform; }
 
-/* ✅ شורה עליונה: שתי טבלאות ליד אחת השנייה */
+/* ✅ שורה עליונה: שתי טבלאות ליד אחת השנייה */
 .top-row{
   display:flex;
   width:100%;
@@ -254,14 +207,6 @@ table{
   background:var(--card);
   color:var(--text);
   font-size:12px;
-}
-
-/* ✅ keep table background solid (so it never blends with stadium) */
-table{
-  background: var(--card);
-}
-body[data-theme="dark"] table{
-  background: var(--card);
 }
 
 th, td{
@@ -331,12 +276,6 @@ th, td{
    Capture mode
    ========================= */
 body.capture-mode{ background:#fff !important; }
-
-/* ✅ disable stadium background in capture mode */
-body.capture-mode::before,
-body.capture-mode::after{
-  display:none !important;
-}
 
 body.capture-mode .no-capture,
 body.capture-mode header,
